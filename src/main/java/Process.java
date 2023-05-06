@@ -56,6 +56,9 @@ public class Process implements Comparable<Process> {
         return bursts.peek().type;
     }
 
+    /**
+     * Runs a clock tick for this process in whatever state the processor is currently in.
+     */
     public void tick() {
         currentTick++;
         switch (currentState) {
@@ -110,6 +113,13 @@ public class Process implements Comparable<Process> {
         return 0;
     }
 
+    /**
+     * Sends the process to I/O for a specified duration.  Return value is the amount of time used if the requested
+     * duration is longer than the current I/O burst time.
+     *
+     * @param time is the I/O time to process.
+     * @return is the amount of time actually used if the requested time is longer than the I/O burst duration.
+     */
     public int sendToIO(int time) {
         totalTime += time;
         currentState = State.IO;
@@ -138,8 +148,13 @@ public class Process implements Comparable<Process> {
         waitingTime += time;
     }
 
+    /**
+     * Calculates the turnaround time of this process.  Only valid if the process has finished.
+     * @return is the turnaround time.
+     */
     public int getTurnaroundTime() {
-        return waitingTime + cpuTime + ioTime;
+        if (this.isFinished()) return waitingTime + cpuTime + ioTime;
+        return 0;
     }
 
     public int getResponseTime() {
@@ -194,6 +209,19 @@ public class Process implements Comparable<Process> {
         this.currentState = currentState;
     }
 
+    /**
+     * Bumps the process off of the CPU so a higher priority process can run.
+     */
+    public void preempt() {
+        this.currentState = State.WAITING;
+    }
+
+    /**
+     * Compares two Process objects on priority first, then on duration if currently in a CPU burst cycle.
+     *
+     * @param other is the object to be compared.
+     * @return is the result of the comparison.
+     */
     public int compareTo(Process other) {
         if (this.priority != other.priority) {
             return this.priority - other.priority;
