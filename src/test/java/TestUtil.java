@@ -36,7 +36,7 @@ public class TestUtil {
         Process currProc = null;
         for (int i = 0; i < priorities.length; i++) {
             for (int bursts : burstByNameMap.get(names[i])) {
-                currProc = this.createProcess(names[i], priorities[i], bursts);
+                currProc = this.createProcess(names[i], priorities[i], 0, burstByNameMap.get(names[i]));
             }
             procArr[i] = currProc;
         }
@@ -82,6 +82,7 @@ public class TestUtil {
         for (int burst : bursts) {
             newProc.addBurst(burstType, burst);
             burstType = burstType == Process.BurstType.CPU ? Process.BurstType.IO : Process.BurstType.CPU;
+
         }
         return newProc;
     }
