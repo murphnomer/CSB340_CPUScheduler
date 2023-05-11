@@ -1,5 +1,10 @@
 import java.util.*;
 
+/**
+ * Process Class.
+ *
+ * @author Mike Murphy, Jared Scarr
+ */
 public class Process implements Comparable<Process> {
 
     public enum BurstType {IO, CPU;}
@@ -23,6 +28,7 @@ public class Process implements Comparable<Process> {
     private String name;
     private int priority;
     private Queue<Burst> bursts;
+    private BurstType lastAddedBurstType;
     private int waitingTime;
     private int cpuTime;
     private int ioTime;
@@ -32,11 +38,19 @@ public class Process implements Comparable<Process> {
     private int arrivalTime;
     private int firstRunTime;
     private State currentState;
+    private int enterWait;
 
+    /**
+     * Constructor for Process.
+     * @param name - process name.
+     * @param priority - priority of process.
+     * @param arrivalTime - the time the process arrived.
+     */
     public Process(String name, int priority, int arrivalTime) {
         this.name = name;
         this.priority = priority;
         this.bursts = new LinkedList<>();
+        this.lastAddedBurstType = null;
         this.arrivalTime = arrivalTime;
         this.waitingTime = 0;
         this.cpuTime = 0;
@@ -46,15 +60,64 @@ public class Process implements Comparable<Process> {
         this.currentTick = 0;
         this.firstRunTime = 0;
         this.currentState = State.WAITING;
+        this.enterWait = 0;
     }
 
-    public void addBurst(BurstType type, Integer duration) {
-        bursts.add(new Burst(type, duration));
+    /**
+     * Get the time that this process entered the most recent waiting state.
+     * When compared to a total running time this may be used to craft
+     * a time delta to see how long this process has been waiting.
+     * @return - int.
+     */
+    public int getEnterWaitState() {
+        return enterWait;
     }
 
+    /**
+     * Set the time the process entered a waiting state.
+     * Allows for wait time to be tracked outside of this process when compared
+     * to an outside total running time.
+     * @param waitStart - int
+     */
+    public void setEnterWaitState(int waitStart) {
+        this.enterWait = waitStart;
+    }
+
+    /**
+     * Add a burst to this process.
+     * Burst types in this class are tracked in a queue that must alternate
+     * from CPU/IO burst types beginning with a CPU burst type.
+     * Throws InvalidBurstTypeException if burst type added out of order.
+     * @param type - BurstType
+     * @param duration - Integer
+     */
+    public void addBurst(BurstType type, Integer duration) throws InvalidBurstTypeException {
+        if (lastAddedBurstType == null) {
+            bursts.add(new Burst(type, duration));
+        } else if (!lastAddedBurstType.equals(type)) {
+            bursts.add(new Burst(type, duration));
+        } else {
+            throw new InvalidBurstTypeException("Invalid BurstType for queue. Attempted to add: " + type
+                                                + " but last added type is: " + lastAddedBurstType);
+        }
+
+    }
+
+    /**
+     * Return the next burst type.
+     * If there are no more bursts return null.
+     * @return - BurstType || null.
+     */
     public BurstType nextBurstType() {
-        return bursts.peek().type;
+        return bursts.peek() != null ? bursts.peek().type : null;
     }
+
+    /**
+     * Return the next burst duration.
+     * If there is no burst return 0.
+     * @return - int
+     */
+    public Integer nextBurstDuration() { return bursts.peek() != null ? bursts.peek().duration : 0; }
 
     /**
      * Runs a clock tick for this process in whatever state the processor is currently in.
@@ -75,6 +138,21 @@ public class Process implements Comparable<Process> {
     }
 
     /**
+     * Execute the current process. Check the next burst and send to the appropriate method.
+     * @param time - int
+     */
+    public void execute(int time) {
+        BurstType nextBurstType = nextBurstType();
+        if (nextBurstType == BurstType.CPU) {
+            runOnCPU(time);
+        }
+
+        if (nextBurstType == BurstType.IO){
+            sendToIO();
+        }
+    }
+
+    /**
      * Simulates the process running on the CPU for some amount of time.  If the next burst in the queue is a CPU
      * burst, decrements the remaining time in the burst and removes the burst if time decrements to zero.
      *
@@ -85,12 +163,15 @@ public class Process implements Comparable<Process> {
         totalTime += time;
         if (firstRunTime == 0) firstRunTime = currentTick;
         Burst curBurst = bursts.peek();
-        cpuTime += Math.max(curBurst.duration, time);
-        if (curBurst.type == BurstType.CPU) {
-            curBurst.duration = curBurst.duration - time;
-            if (curBurst.duration <= 0) {
-                bursts.remove();
-                setCurrentState(State.WAITING);
+        if (curBurst != null) {
+            cpuTime += Math.max(curBurst.duration, time);
+            if (curBurst.type == BurstType.CPU) {
+                curBurst.duration = curBurst.duration - time;
+                if (curBurst.duration <= 0) {
+                    bursts.remove();
+                    setCurrentState(State.WAITING);
+                    return Math.abs(curBurst.duration);
+                }
                 return Math.abs(curBurst.duration);
             }
         }
@@ -108,6 +189,7 @@ public class Process implements Comparable<Process> {
         if (bursts.peek().type == BurstType.IO) {
             Burst curBurst = bursts.remove();
             ioTime += curBurst.duration;
+            setCurrentState(State.WAITING);
             return curBurst.duration;
         }
         return 0;
@@ -124,14 +206,16 @@ public class Process implements Comparable<Process> {
         totalTime += time;
         currentState = State.IO;
         Burst curBurst = bursts.peek();
-        if (curBurst.type == BurstType.IO) {
-            curBurst.duration -= time;
-            int timeUsed = Math.min(curBurst.duration, time);
-            ioTime += timeUsed;
-            if (curBurst.duration <= 0) {
-                bursts.remove();
-                currentState = State.WAITING;
-                return timeUsed;
+        if (curBurst != null) {
+            if (curBurst.type == BurstType.IO) {
+                curBurst.duration -= time;
+                int timeUsed = Math.min(curBurst.duration, time);
+                ioTime += timeUsed;
+                if (curBurst.duration <= 0) {
+                    bursts.remove();
+                    currentState = State.WAITING;
+                    return timeUsed;
+                }
             }
         }
         return 0;
@@ -157,54 +241,109 @@ public class Process implements Comparable<Process> {
         return 0;
     }
 
+    /**
+     * Return the response time of this process.
+     * @return - int
+     */
     public int getResponseTime() {
         return firstRunTime - arrivalTime;
     }
 
+    /**
+     * Return boolean value if the process is finished or not.
+     * Process is finished if either the State is FINISHED or
+     * there are no more bursts to process.
+     *
+     * @return - boolean
+     */
     public boolean isFinished() {
         return bursts.isEmpty() || currentState == State.FINISHED;
     }
 
-    public void finish(int finishTime) {
+    /**
+     * Set the time that the process completed all bursts.
+     * @param finishTime - int.
+     */
+    public void setFinishTime(int finishTime) {
         this.finishTime = finishTime;
     }
 
+    /**
+     * Return the name of the process.
+     * @return - String.
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Return this process's priority.
+     * @return - int.
+     */
     public int getPriority() {
         return priority;
     }
 
+    /**
+     * Set the priority on the process.
+     * @param priority - int
+     */
     public void setPriority(int priority) {
         this.priority = priority;
     }
 
+    /**
+     * Return total time spent waiting.
+     * @return - int.
+     */
     public int getWaitingTime() {
         return waitingTime;
     }
 
+    /**
+     * Return total time spent processing cpu bursts.
+     * @return - int.
+     */
     public int getCpuTime() {
         return cpuTime;
     }
 
+    /**
+     * Return total time spend processing IO bursts.
+     * @return 0 int
+     */
     public int getIoTime() {
         return ioTime;
     }
 
+    /**
+     * Return total time process did things.
+     * @return - int.
+     */
     public int getTotalTime() {
         return totalTime;
     }
 
+    /**
+     * Return time process finished.
+     * @return - int
+     */
     public int getFinishTime() {
         return finishTime;
     }
 
+    /**
+     * Get the current state.
+     * @return - State
+     */
     public State getCurrentState() {
         return currentState;
     }
 
+    /**
+     * Set the current state.
+     * @param currentState - new State.
+     */
     public void setCurrentState(State currentState) {
         this.currentState = currentState;
     }
@@ -233,6 +372,15 @@ public class Process implements Comparable<Process> {
             int otherDuration = (otherBurst.type == BurstType.CPU) ? otherBurst.duration : 100;
 
             return myDuration - otherDuration;
+        }
+    }
+
+    /**
+     * InvalidBurstTypeException.
+     */
+    static class InvalidBurstTypeException extends Exception {
+        public InvalidBurstTypeException(String message) {
+            super(message);
         }
     }
 }
