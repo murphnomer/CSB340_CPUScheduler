@@ -375,6 +375,17 @@ public class Process implements Comparable<Process> {
         }
     }
 
+    public String toString() {
+        StringBuilder sb = new StringBuilder("");
+
+        sb.append(this.name + " {");
+        for (Burst b : bursts) {
+            sb.append(b.type.toString() + ":" + b.duration + " ");
+        }
+        sb.append("}");
+        return sb.toString();
+    }
+
     /**
      * InvalidBurstTypeException.
      */
