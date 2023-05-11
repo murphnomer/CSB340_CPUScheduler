@@ -50,8 +50,7 @@ public class RR {
             // Run process for entire burst or quantum whichever is shortest
             int runDuration = Math.max(currProc.nextBurstDuration(), timeQuantum);
             currProc.execute(runDuration);
-            algorithmTotalTime += runDuration;
-            System.out.println(currProc.getCurrentState());
+            algorithmTotalTime += runDuration;;
             // if finished processing add to processed list
             if (currProc.isFinished()) {
                 currProc.setCurrentState(Process.State.FINISHED);
