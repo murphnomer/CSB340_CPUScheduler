@@ -40,17 +40,16 @@ public class RR {
     public List<Process> process() {
         while (!isEmpty()) {
             Process currProc = queue.poll();
-            if (currProc.getCurrentState() == Process.State.WAITING && currProc.getEnterWaitState() != 0) {
+
+            if (currProc.getCurrentState() == Process.State.WAITING) {
                 int delta = algorithmTotalTime - currProc.getEnterWaitState();
                 // adds wait time to total wait time and total time
                 currProc.wait(delta);
-                // reset waiting time for this period (not total weight time)
-                currProc.setEnterWaitState(0);
             }
             // Run process for entire burst or quantum whichever is shortest
-            int runDuration = Math.max(currProc.nextBurstDuration(), timeQuantum);
+            int runDuration = Math.min(currProc.nextBurstDuration(), timeQuantum);
             currProc.execute(runDuration);
-            algorithmTotalTime += runDuration;;
+            algorithmTotalTime += runDuration;
             // if finished processing add to processed list
             if (currProc.isFinished()) {
                 currProc.setCurrentState(Process.State.FINISHED);
