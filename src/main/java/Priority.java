@@ -12,6 +12,7 @@ public class Priority {
     private final PriorityQueue<Process> pq;
     private final RR rr;
     private List<Process> processedList;
+    private int algorithmTotalTime = 0;
 
     /**
      * Default constructor.
@@ -75,22 +76,30 @@ public class Priority {
 
         while (!pq.isEmpty()) {
             currProc = pq.poll();
-            System.out.println(currProc.getName() + " " + currProc.nextBurstDuration());
-            while (currProc != null && pq.peek() != null && currProc.getPriority() == pq.peek().getPriority()) {
-                rr.addProcess(currProc);
-                currProc = pq.poll();
-                rr.addProcess(currProc);
-            }
             // If multiple processes with the same priority have been found run on
-            // Round Robin algorithm to prevent starvation
+            // round-robin algorithm to prevent starvation
+            if (currProc.getCurrentState() == Process.State.WAITING) {
+                while (currProc != null && pq.peek() != null && currProc.getPriority() == pq.peek().getPriority()) {
+                    rr.addProcess(currProc);
+                    currProc = pq.poll();
+                    rr.addProcess(currProc);
+                }
+            }
+
             if (!rr.isEmpty()) {
                 completedProcessList = rr.process();
                 processedList.addAll(completedProcessList);
+                // End round-robin code execution
             } else {
                 // Otherwise run on Priority algorithm
+                // update the time this process has been waiting based on the delta of when it entered the queue
+                // and how long this algorithm has been running bursts
+                int delta = algorithmTotalTime - currProc.getEnterWaitState();
+                currProc.wait(delta);
                 currProc.setCurrentState(Process.State.RUNNING);
                 while (!currProc.isFinished()) {
                     currProc.execute(currProc.nextBurstDuration());
+                    algorithmTotalTime += currProc.nextBurstDuration();
                 }
                 processedList.add(currProc);
             }
