@@ -52,8 +52,11 @@ public class RR {
             algorithmTotalTime += runDuration;
             // if finished processing add to processed list
             if (currProc.isFinished()) {
-                currProc.setCurrentState(Process.State.FINISHED);
                 processedList.add(currProc);
+            }
+
+            if (currProc.getCurrentState() == Process.State.IO) {
+                currProc.execute(runDuration);
             }
             // if not finished then return to the priority queue
             if (currProc.getCurrentState() == Process.State.WAITING) {
