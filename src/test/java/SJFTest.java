@@ -14,14 +14,17 @@ class SJFTest {
         Process[] testData = testUtil.getDefaultTestData();
         SJF sjf = new SJF(testData);
         List<Process> result = sjf.process();
-        String[] expected = {"P8", "P1", "P7", "P2", "P3", "P4", "P6", "P5"};
+        String[] expected = {"P1", "P6", "P8", "P7", "P2", "P4", "P5", "P3"};
         ArrayList<String> actual = new ArrayList<>(8);
         for (Process proc : result) {
-            System.out.print(proc.getName() + " " + proc.getCpuTime() + " " + proc.getIoTime() +
-                    " " + proc.getTurnaroundTime() + " ");
+            System.out.print(proc.getName() + " CPU: " + proc.getCpuTime() + " IO: " + proc.getIoTime() +
+                    " TT: " + proc.getTurnaroundTime() + " WT: ");
             System.out.println(proc.getWaitingTime());
             actual.add(proc.getName());
         }
+        System.out.print("Total Time: " + sjf.timer + " Idle Time: " + sjf.idleCPUTime + " CPU Util: ");
+        System.out.printf("%.1f", sjf.getCPUUtilization() * 100);
+        System.out.println("%");
         assertArrayEquals(expected, actual.toArray());
     }
 }

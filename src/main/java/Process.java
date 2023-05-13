@@ -169,7 +169,15 @@ public class Process implements Comparable<Process> {
                 curBurst.duration = curBurst.duration - time;
                 if (curBurst.duration <= 0) {
                     bursts.remove();
-                    setCurrentState(State.WAITING);
+                    if (isFinished()) {
+                        setCurrentState(State.FINISHED);
+                    } else {
+                        if (getCurrentBurstType() == BurstType.IO) {
+                            setCurrentState(State.IO);
+                        } else {
+                            setCurrentState(State.WAITING);
+                        }
+                    }
                     return Math.abs(curBurst.duration);
                 }
                 return Math.abs(curBurst.duration);

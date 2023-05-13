@@ -6,6 +6,7 @@ public class SJF {
     PriorityQueue<Process> readyQueue;
     List<Process> allProcesses;
     List<Process> outForIO;
+    List<Process> finishedProcesses;
     int timer;
     int totalNumberOfProcesses;
     int idleCPUTime;
@@ -19,6 +20,7 @@ public class SJF {
         readyQueue = new PriorityQueue<>(new OrderByCPUDuration());
         allProcesses = new ArrayList<>();
         outForIO = new ArrayList<>();
+        finishedProcesses = new ArrayList<>();
         totalNumberOfProcesses = processes.length;
 
         for (Process p : processes) {
@@ -43,9 +45,14 @@ public class SJF {
             p.tick();
             if (p.getCurrentState() == Process.State.WAITING) {
                 if (!readyQueue.contains(p)) readyQueue.add(p);
+                if (outForIO.contains(p)) outForIO.remove(p);
             }
             if (p.getCurrentState() == Process.State.IO) {
                 if (!outForIO.contains(p)) outForIO.add(p);
+            }
+            if (p.getCurrentState() == Process.State.FINISHED) {
+                if (!finishedProcesses.contains(p)) finishedProcesses.add(p);
+                if (outForIO.contains(p)) outForIO.remove(p);
             }
         }
     }
@@ -53,24 +60,33 @@ public class SJF {
     public List<Process> process() {
 
         while (getUnfinishedProcessCount() > 0) {
-            if (readyQueue.size() > 0) {
-                if (cpuIsIdle || procOnCPU.getCurrentState() == Process.State.IO) {
+            if (procOnCPU != null && procOnCPU.getCurrentState() == Process.State.RUNNING) {
+
+            } else if (readyQueue.size() > 0) {
+                if (cpuIsIdle || procOnCPU.getCurrentState() != Process.State.RUNNING) {
                     cpuIsIdle = false;
                     procOnCPU = readyQueue.remove();
-                    //displayState();
+                    displayState(false);
                 }
                 cpuIsIdle = false;
                 procOnCPU.setCurrentState(Process.State.RUNNING);
             } else {
                 procOnCPU = null;
-                cpuIsIdle = true;
+                if (!cpuIsIdle) {
+                    cpuIsIdle = true;
+                    displayState(false);
+                }
             }
             tickAll();
         }
-        return allProcesses;
+        return finishedProcesses;
     }
 
-    public void displayState() {
+    public double getCPUUtilization() {
+        return (1.0 * (timer - idleCPUTime)) / timer;
+    }
+
+    public void displayState(boolean waitBetweenPages) {
         System.out.println("Current Time: " + timer);
         System.out.println();
         System.out.println("Next process on CPU: " + ((cpuIsIdle) ? "<none>" : procOnCPU.getName() + ", duration: " +
@@ -79,7 +95,7 @@ public class SJF {
         System.out.println();
         System.out.println("List of processes in the ready queue:");
         System.out.println();
-        System.out.println("\t\tProcess\tBurst");
+        System.out.println("\t\tProcess\t\tBurst");
         for (Process p : readyQueue) {
             System.out.println("\t\t\t" + p.getName() + "\t\t" + p.getCurrentDuration());
         }
@@ -91,11 +107,21 @@ public class SJF {
         for (Process p : outForIO) {
             System.out.println("\t\t\t" + p.getName() + "\t\t" + p.getCurrentDuration());
         }
+        System.out.println(".......................................................");
+        System.out.println();
+        System.out.print("Finished processes: ");
+        for (Process p : finishedProcesses) System.out.print(p.getName() + " ");
+        System.out.println();
         System.out.println(":::::::::::::::::::::::::::::::::::::::::::::::::::::::");
         System.out.println();
         System.out.println();
-        try {System.in.read();} catch (Exception e) {
-            System.out.println(e);
+        if (waitBetweenPages) {
+            System.out.println("Press ENTER to continue...");
+            try {
+                System.in.read();
+            } catch (Exception e) {
+                System.out.println(e);
+            }
         }
     }
 }
