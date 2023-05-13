@@ -169,7 +169,15 @@ public class Process implements Comparable<Process> {
                 curBurst.duration = curBurst.duration - time;
                 if (curBurst.duration <= 0) {
                     bursts.remove();
-                    setCurrentState(State.WAITING);
+                    if (isFinished()) {
+                        setCurrentState(State.FINISHED);
+                    } else {
+                        if (getCurrentBurstType() == BurstType.IO) {
+                            setCurrentState(State.IO);
+                        } else {
+                            setCurrentState(State.WAITING);
+                        }
+                    }
                     return Math.abs(curBurst.duration);
                 }
                 return Math.abs(curBurst.duration);
@@ -348,6 +356,14 @@ public class Process implements Comparable<Process> {
         this.currentState = currentState;
     }
 
+    public int getCurrentDuration() {
+        return bursts.peek().duration;
+    }
+
+    public BurstType getCurrentBurstType() {
+        return bursts.peek().type;
+    }
+
     /**
      * Bumps the process off of the CPU so a higher priority process can run.
      */
@@ -375,12 +391,44 @@ public class Process implements Comparable<Process> {
         }
     }
 
+    public String toString() {
+        StringBuilder sb = new StringBuilder("");
+
+        sb.append(this.name + " Pri: " + this.priority + ": {");
+        for (Burst b : bursts) {
+            sb.append(b.type.toString() + ":" + b.duration + " ");
+        }
+        sb.append("}");
+        return sb.toString();
+    }
+
     /**
      * InvalidBurstTypeException.
      */
     static class InvalidBurstTypeException extends Exception {
         public InvalidBurstTypeException(String message) {
             super(message);
+        }
+    }
+}
+
+class OrderByPriority implements Comparator<Process> {
+    public int compare(Process a, Process b) {
+        return a.getPriority() - b.getPriority();
+    }
+}
+
+class OrderByCPUDuration implements Comparator<Process> {
+    public int compare(Process a, Process b) {
+        if (a.getCurrentBurstType() == Process.BurstType.CPU) {
+            if (b.getCurrentBurstType() == Process.BurstType.CPU)
+                return a.getCurrentDuration() - b.getCurrentDuration();
+            else return 0 - a.getCurrentDuration();
+        } else {
+            if (b.getCurrentBurstType() == Process.BurstType.IO)
+                return 0;
+            else return b.getCurrentDuration();
+
         }
     }
 }
