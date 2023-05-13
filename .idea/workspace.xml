@@ -7,7 +7,9 @@
     <list default="true" id="3b51e607-7950-479a-8cd0-2e296af43b14" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/RR.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/RR.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/RRTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/RRTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/SJF.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/SJF.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/SJFTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/SJFTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/TestUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/TestUtil.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,6 +45,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Class" />
+        <option value="Interface" />
       </list>
     </option>
   </component>
@@ -63,12 +66,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "git-widget-placeholder": "main"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;
   }
-}]]></component>
-  <component name="RunManager" selected="Gradle.SJFTest.testRuns">
+}</component>
+  <component name="RunManager" selected="Application.Main">
+    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Main" />
+      <module name="CPUScheduler_Stub.main" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="PriorityTest.testProcessedInOrderOfPriorityNonPreemptive" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -165,10 +175,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.SJFTest.testRuns" />
-        <item itemvalue="Gradle.RRTest.testRuns" />
-        <item itemvalue="Gradle.PriorityTest.testProcessedInOrderOfPriorityNonPreemptive" />
         <item itemvalue="Gradle.Tests in 'CPUScheduler_Stub.test'" />
+        <item itemvalue="Application.Main" />
+        <item itemvalue="Gradle.RRTest.testRuns" />
+        <item itemvalue="Gradle.SJFTest.testRuns" />
+        <item itemvalue="Gradle.PriorityTest.testProcessedInOrderOfPriorityNonPreemptive" />
       </list>
     </recent_temporary>
   </component>
