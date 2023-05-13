@@ -8,6 +8,7 @@ import java.util.HashMap;
 public class TestUtil {
     private final String[] names = {"P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"};
     private final int[] priorities = {3, 6, 5, 4, 1, 2, 8, 7};
+    private final int[] zeroPriorities = {0, 0, 0, 0, 0, 0, 0, 0};
     private final int[] p1Bursts = {5, 27, 3, 31, 5, 43, 4, 18, 6, 22, 4, 26, 3, 24, 4};
     private final int[] p2Bursts = {4, 48, 5, 44, 7, 42, 12, 37, 9, 76, 4, 41, 9, 31, 7, 43, 8};
     private final int[] p3Bursts = {8, 33, 12, 41, 18, 65, 14, 21, 4, 61, 15, 18, 14, 26, 5, 31, 6};
@@ -23,6 +24,13 @@ public class TestUtil {
             burstMap.put(names[i], allBurstData[i]);
         }
         return createMultipleProcess(names, priorities, burstMap);
+    }
+
+    public Process[] getDefaultTestDataNoPriority() {
+        for(int i = 0; i < names.length; i++) {
+            burstMap.put(names[i], allBurstData[i]);
+        }
+        return createMultipleProcess(names, zeroPriorities, burstMap);
     }
     /**
      * Return an array of Processes.
