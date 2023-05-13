@@ -87,13 +87,14 @@ public class TestUtil {
     public Process createProcess(String name, int priority, int arrivalTime, int[] bursts) {
         Process newProc = new Process(name, priority, arrivalTime);
         Process.BurstType burstType = Process.BurstType.CPU;
-        for (int burst : bursts) {
-            try {
+        try {
+            for (int burst : bursts) {
                 newProc.addBurst(burstType, burst);
                 burstType = burstType == Process.BurstType.CPU ? Process.BurstType.IO : Process.BurstType.CPU;
-            } catch (Process.InvalidBurstTypeException e) {
-                System.out.println(e);
             }
+        } catch (Process.InvalidBurstTypeException error) {
+            System.out.println(error);
+
         }
         return newProc;
     }
