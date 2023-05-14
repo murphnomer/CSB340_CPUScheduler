@@ -2,6 +2,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
 
+/**
+ * Shortest Job First (non-preemptive) scheduling algorithm
+ *
+ * @author Mike Murphy
+ */
 public class SJF implements ScheduleInterface {
     PriorityQueue<Process> readyQueue;
     List<Process> allProcesses;
@@ -30,6 +35,11 @@ public class SJF implements ScheduleInterface {
         }
     }
 
+    /**
+     * Gets the number of process that haven't yet finished their operations.
+     *
+     * @return is the number of unfinished processes.
+     */
     public int getUnfinishedProcessCount() {
         int count = 0;
 
@@ -39,18 +49,26 @@ public class SJF implements ScheduleInterface {
         return count;
     }
 
+    /**
+     * Runs a single clock tick on every process.
+     */
     public void tickAll() {
         timer++;
         if (cpuIsIdle) idleCPUTime++;
         for (Process p : allProcesses) {
             p.tick();
+
+            // if the process is waiting, make sure it's in the ready queue and not in the IO queue
             if (p.getCurrentState() == Process.State.WAITING) {
                 if (!readyQueue.contains(p)) readyQueue.add(p);
                 if (outForIO.contains(p)) outForIO.remove(p);
             }
+            // if the process is in the IO state, make sure it's in the IO queue
             if (p.getCurrentState() == Process.State.IO) {
                 if (!outForIO.contains(p)) outForIO.add(p);
             }
+            // if the process has finished all of its bursts, make sure it's in the finished queue and not in the IO
+            // queue
             if (p.getCurrentState() == Process.State.FINISHED) {
                 if (!finishedProcesses.contains(p)) finishedProcesses.add(p);
                 if (outForIO.contains(p)) outForIO.remove(p);
@@ -58,31 +76,51 @@ public class SJF implements ScheduleInterface {
         }
     }
 
+    /**
+     * Runs the algorithm on the process list until all processes have finished.
+     *
+     * @return is the list of finished process in the order of completion.
+     */
     public List<Process> process() {
 
         while (getUnfinishedProcessCount() > 0) {
+            // if there's currently a running process on the CPU
             if (procOnCPU != null && procOnCPU.getCurrentState() == Process.State.RUNNING) {
+                // no context switch required
 
+              // if no currently running process, the if the ready queue is not empty
             } else if (readyQueue.size() > 0) {
+                // ensure the CPU is not set to idle
+                cpuIsIdle = false;
+                // if the process currently on the processor is not running, that means it must have finished on the
+                // previous tick, so send it to IO and choose the next process
                 if (cpuIsIdle || procOnCPU.getCurrentState() != Process.State.RUNNING) {
-                    cpuIsIdle = false;
+                    // pick the next process from the ready queue
                     procOnCPU = readyQueue.remove();
+                    // print output for this context switch if desired
                     if (displayMode) displayState(false);
                 }
-                cpuIsIdle = false;
+                // set the selected process to running
                 procOnCPU.setCurrentState(Process.State.RUNNING);
             } else {
+                // the ready queue is empty, so the CPU will be idle
                 procOnCPU = null;
                 if (!cpuIsIdle) {
                     cpuIsIdle = true;
+                    // display this context switch if desired
                     if (displayMode) displayState(false);
                 }
             }
+            // run a tick on all processes
             tickAll();
         }
         return finishedProcesses;
     }
 
+    /**
+     * Gets the CPU utilization metric for this run
+     * @return
+     */
     public double getCPUUtilization() {
         return (1.0 * (timer - idleCPUTime)) / timer;
     }
@@ -95,6 +133,11 @@ public class SJF implements ScheduleInterface {
         this.displayMode = displayMode;
     }
 
+    /**
+     * Prints out the current state of all queues.
+     *
+     * @param waitBetweenPages - boolean to wait for command line input or not.
+     */
     public void displayState(boolean waitBetweenPages) {
         System.out.println("Current Time: " + timer);
         System.out.println();
