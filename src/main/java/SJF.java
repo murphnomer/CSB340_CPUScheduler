@@ -8,15 +8,25 @@ import java.util.PriorityQueue;
  * @author Mike Murphy
  */
 public class SJF implements ScheduleInterface {
+    // priority queue of processes waiting for CPU time
     PriorityQueue<Process> readyQueue;
+    // list of all processes regardless of status
     List<Process> allProcesses;
+    // list of processes currently doing IO
     List<Process> outForIO;
+    // list of processes that have already finished their work
     List<Process> finishedProcesses;
+    // tracking variable for how many CPU ticks have elapsed
     int timer;
+    // total number of processes
     int totalNumberOfProcesses;
+    // counter for how long the CPU has been idle
     int idleCPUTime;
+    // indicator of whether the CPU is currently idle
     boolean cpuIsIdle;
+    // pointer to the process currently executing on the CPU
     Process procOnCPU;
+    // switch variable indicating whether to display state at every context switch
     private boolean displayMode = false;
 
     public SJF(Process[] processes) {
@@ -125,6 +135,19 @@ public class SJF implements ScheduleInterface {
         return (1.0 * (timer - idleCPUTime)) / timer;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public int getTotalIdleCPUTime() {
+        return idleCPUTime;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public int getTotalElapsedTime() {
+        return timer;
+    }
     /**
      * Set boolean variable for the display mode.
      * @param displayMode - boolean default true.
