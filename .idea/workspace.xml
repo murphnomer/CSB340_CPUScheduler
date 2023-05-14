@@ -5,11 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3b51e607-7950-479a-8cd0-2e296af43b14" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/RR.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/RR.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/SJF.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/SJF.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/SJFTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/SJFTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/TestUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/TestUtil.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,12 +63,13 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true"
   }
-}</component>
-  <component name="RunManager" selected="Application.Main">
+}]]></component>
+  <component name="RunManager" selected="Gradle.Tests in 'CPUScheduler_Stub.test'">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="CPUScheduler_Stub.main" />
