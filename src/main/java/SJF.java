@@ -12,7 +12,7 @@ public class SJF implements ScheduleInterface {
     int idleCPUTime;
     boolean cpuIsIdle;
     Process procOnCPU;
-    private boolean displayMode = true;
+    private boolean displayMode = false;
 
     public SJF(Process[] processes) {
         timer = 0;

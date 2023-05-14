@@ -58,7 +58,7 @@ public class Process implements Comparable<Process> {
         this.finishTime = 0;
         this.totalTime = 0;
         this.currentTick = 0;
-        this.firstRunTime = 0;
+        this.firstRunTime = -1;
         this.currentState = State.WAITING;
         this.enterWait = 0;
     }
@@ -123,7 +123,6 @@ public class Process implements Comparable<Process> {
      * Runs a clock tick for this process in whatever state the processor is currently in.
      */
     public void tick() {
-        currentTick++;
         switch (currentState) {
             case WAITING:
                 wait(1);
@@ -135,6 +134,7 @@ public class Process implements Comparable<Process> {
                 sendToIO(1);
                 break;
         }
+        currentTick++;
     }
 
     /**
@@ -161,11 +161,11 @@ public class Process implements Comparable<Process> {
      */
     public int runOnCPU(int time) {
         totalTime += time;
-        if (firstRunTime == 0) firstRunTime = currentTick;
+        if (firstRunTime == -1) firstRunTime = currentTick;
         Burst curBurst = bursts.peek();
         if (curBurst != null) {
-            cpuTime += Math.max(curBurst.duration, time);
             if (curBurst.type == BurstType.CPU) {
+                cpuTime += Math.min(curBurst.duration, time);
                 curBurst.duration = curBurst.duration - time;
                 if (curBurst.duration <= 0) {
                     bursts.remove();
@@ -216,9 +216,9 @@ public class Process implements Comparable<Process> {
         Burst curBurst = bursts.peek();
         if (curBurst != null) {
             if (curBurst.type == BurstType.IO) {
-                curBurst.duration -= time;
                 int timeUsed = Math.min(curBurst.duration, time);
                 ioTime += timeUsed;
+                curBurst.duration -= time;
                 if (curBurst.duration <= 0) {
                     bursts.remove();
                     currentState = State.WAITING;
