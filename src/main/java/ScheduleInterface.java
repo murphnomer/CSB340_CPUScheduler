@@ -1,5 +1,10 @@
 import java.util.List;
 
+/**
+ * Interface for scheduling algorithms.
+ *
+ * @author Jared Scarr
+ */
 public interface ScheduleInterface {
     /**
      * Execute the schedule.
