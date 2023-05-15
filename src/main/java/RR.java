@@ -14,24 +14,44 @@ public class RR implements ScheduleInterface {
     private Process currentRunningProcess = null;
     private boolean displayMode = true;
 
+    /**
+     * Default constructor.
+     */
     public RR() {
         timeQuantum = 10;
     }
 
+    /**
+     * Constructor with List as param.
+     * @param toProcessList - List of Processes.
+     */
     public RR(List<Process> toProcessList) {
         timeQuantum = 10;
         queue.addAll(toProcessList);
     }
 
+    /**
+     * Constructor with quantum as parameter.
+     * @param quantumLength - integer representing the quantum duration.
+     */
     public RR(int quantumLength) {
         timeQuantum = quantumLength;
     }
 
+    /**
+     * Constructor with both time quantum and list passed.
+     * @param quantumLength - int time quantum duration.
+     * @param toProcessList - List of Processes.
+     */
     public RR(int quantumLength, List<Process> toProcessList) {
         timeQuantum = quantumLength;
         queue.addAll(toProcessList);
     }
 
+    /**
+     * Process the schedule given the current state of the ready queue.
+     * @return - list of completed processes in order of completion.
+     */
     public List<Process> process() {
         while (!isEmpty()) {
             Process currProc = queue.poll();
@@ -104,6 +124,10 @@ public class RR implements ScheduleInterface {
         displayMode = display;
     }
 
+    /**
+     * Display consecutive snapshots of each iteration of the algorithm.
+     * @param waitBetweenPages - boolean to wait for command line input or not.
+     */
     public void displayState(boolean waitBetweenPages) {
         System.out.println("Current Time: " + algorithmTotalTime);
         System.out.println();
