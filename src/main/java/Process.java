@@ -147,7 +147,7 @@ public class Process implements Comparable<Process> {
             runOnCPU(time);
         }
 
-        if (nextBurstType == BurstType.IO){
+        if (nextBurstType == BurstType.IO) {
             sendToIO();
         }
     }
@@ -256,6 +256,17 @@ public class Process implements Comparable<Process> {
     public int getResponseTime() {
         return firstRunTime - arrivalTime;
     }
+
+    /**
+     * Get first run time.
+     * @return - int.
+     */
+    public int getFirstRuntTime() { return firstRunTime; }
+    /**
+     * Set when this process first CPU execution is run.
+     * @param time - int.
+     */
+    public void setFirstRunTime(int time) { this.firstRunTime = time; }
 
     /**
      * Return boolean value if the process is finished or not.

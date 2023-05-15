@@ -5,8 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3b51e607-7950-479a-8cd0-2e296af43b14" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Process.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Process.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/RR.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/RR.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/RRTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/RRTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,11 +67,11 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "js-rr-add-turn-around-logic",
     "ignore.virus.scanning.warn.message": "true"
   }
 }]]></component>
-  <component name="RunManager" selected="Gradle.Tests in 'CPUScheduler_Stub.test'">
+  <component name="RunManager" selected="Application.Main">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="CPUScheduler_Stub.main" />
@@ -77,7 +79,7 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="PriorityTest.testProcessedInOrderOfPriorityNonPreemptive" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="RRTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -90,7 +92,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;PriorityTest.testProcessedInOrderOfPriorityNonPreemptive&quot;" />
+            <option value="&quot;RRTest&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -173,11 +175,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.RRTest" />
         <item itemvalue="Gradle.Tests in 'CPUScheduler_Stub.test'" />
         <item itemvalue="Application.Main" />
         <item itemvalue="Gradle.RRTest.testRuns" />
         <item itemvalue="Gradle.SJFTest.testRuns" />
-        <item itemvalue="Gradle.PriorityTest.testProcessedInOrderOfPriorityNonPreemptive" />
       </list>
     </recent_temporary>
   </component>
