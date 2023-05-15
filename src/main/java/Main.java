@@ -9,7 +9,12 @@ public class Main {
 
     public static void main(String[] args) {
         TestUtil util = new TestUtil();
-        ScheduleInterface[] algorithms = {new RR(Arrays.stream(util.getDefaultTestData()).toList()), new SJF(util.getDefaultTestData()), new FCFS(Arrays.stream(util.getDefaultTestData()).toList())};
+        ScheduleInterface[] algorithms = {
+                new RR(Arrays.stream(util.getDefaultTestData()).toList()),
+                new SJF(util.getDefaultTestData()),
+                new FCFS(Arrays.stream(util.getDefaultTestData()).toList()),
+                new Priority(Arrays.stream(util.getDefaultTestData()).toList())
+        };
         for (ScheduleInterface algo : algorithms) {
             algo.setDisplayMode(DISPLAY_MODE);
             algo.process();

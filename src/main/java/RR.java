@@ -79,7 +79,6 @@ public class RR implements ScheduleInterface {
             if (currProc.isFinished()) {
                 ioQueue.remove(currProc);
                 processedList.add(currProc);
-
             }
 
             if (currProc.getCurrentState() == Process.State.IO) {

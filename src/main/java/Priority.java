@@ -8,20 +8,19 @@ import java.util.PriorityQueue;
  *
  * @author Jared Scarr
  */
-public class Priority {
-    private final PriorityQueue<Process> pq;
-    private final RR rr;
-    private List<Process> processedList;
+public class Priority implements ScheduleInterface {
+    private PriorityQueue<Process> pq = this.getPriorityQueue(false);
+    private final RR rr = new RR();
+    private final List<Process> ioQueue = new ArrayList<>();
+    private List<Process> processedList = new ArrayList<>();;
     private int algorithmTotalTime = 0;
+    private boolean displayMode = true;
+    private Process currentRunningProcess = null;
 
     /**
      * Default constructor.
      */
-    public Priority() {
-        pq = getPriorityQueue(false);
-        processedList = new ArrayList<>();
-        rr = new RR();
-    }
+    public Priority() {}
 
     /**
      * Constructor with option for ascending or descending priority.
@@ -29,8 +28,6 @@ public class Priority {
      */
     public Priority(boolean desc) {
         pq = getPriorityQueue(desc);
-        processedList = new ArrayList<>();
-        rr = new RR();
     }
 
     /**
@@ -38,22 +35,15 @@ public class Priority {
      * @param procList - List of Process classes.
      */
     public Priority(List<Process> procList) {
-        pq = getPriorityQueue(false);
         pq.addAll(procList);
-        processedList = new ArrayList<>();
-        rr = new RR();
     }
-
     /**
      * Constructor with boolean flag and list of processes.
      * @param desc - boolean flag for asc or desc.
      * @param procList - List of Process classes.
      */
     public Priority(boolean desc, List<Process> procList) {
-        pq = getPriorityQueue(desc);
         pq.addAll(procList);
-        processedList = new ArrayList<>();
-        rr = new RR();
     }
 
     /**
@@ -62,7 +52,6 @@ public class Priority {
      */
     public void addProcess(Process proc) {
         pq.add(proc);
-        processedList = new ArrayList<>();
     }
 
     /**
@@ -76,35 +65,135 @@ public class Priority {
 
         while (!pq.isEmpty()) {
             currProc = pq.poll();
-            // If multiple processes with the same priority have been found run on
-            // round-robin algorithm to prevent starvation
-            if (currProc.getCurrentState() == Process.State.WAITING) {
-                while (currProc != null && pq.peek() != null && currProc.getPriority() == pq.peek().getPriority()) {
-                    rr.addProcess(currProc);
-                    currProc = pq.poll();
-                    rr.addProcess(currProc);
-                }
+
+            if (displayMode) {
+                currentRunningProcess = currProc;
+                displayState(false);
             }
 
+            if (currProc.getFirstRuntTime() == -1) {
+                currProc.setFirstRunTime(algorithmTotalTime);
+            }
+
+            if (currProc.getCurrentState() == Process.State.WAITING) {
+                // adds wait time to total wait time and total time
+                currProc.wait(algorithmTotalTime - currProc.getEnterWaitState());
+            }
+            // Check for priorities of equal value and deal with
+            // round-robin algorithm to prevent starvation
+            while (currProc != null && pq.peek() != null && currProc.getPriority() == pq.peek().getPriority()) {
+                if (currProc.getFirstRuntTime() == -1) {
+                    currProc.setFirstRunTime(algorithmTotalTime);
+                }
+                rr.addProcess(currProc);
+                currProc = pq.poll();
+                if (currProc.getFirstRuntTime() == -1) {
+                    currProc.setFirstRunTime(algorithmTotalTime);
+                }
+                currProc.wait(algorithmTotalTime - currProc.getEnterWaitState());
+                rr.addProcess(currProc);
+            }
+            // run round-robin for equal priorities if they exists
             if (!rr.isEmpty()) {
                 completedProcessList = rr.process();
+                ioQueue.removeAll(completedProcessList);
                 processedList.addAll(completedProcessList);
-                // End round-robin code execution
             } else {
-                // Otherwise run on Priority algorithm
-                // update the time this process has been waiting based on the delta of when it entered the queue
-                // and how long this algorithm has been running bursts
-                int delta = algorithmTotalTime - currProc.getEnterWaitState();
-                currProc.wait(delta);
-                currProc.setCurrentState(Process.State.RUNNING);
-                while (!currProc.isFinished()) {
-                    currProc.execute(currProc.nextBurstDuration());
-                    algorithmTotalTime += currProc.nextBurstDuration();
+                if (currProc.getCurrentState() == Process.State.IO) {
+                    ioQueue.add(currProc);
+                } else {
+                    ioQueue.remove(currProc);
                 }
-                processedList.add(currProc);
+                currProc.execute(currProc.nextBurstDuration());
+                algorithmTotalTime += currProc.nextBurstDuration();
+                // if finished remove from io processes
+                // add to processedList else add back to priority queue
+                if (currProc.isFinished()) {
+                    ioQueue.remove(currProc);
+                    processedList.add(currProc);
+                } else {
+                    pq.add(currProc);
+                }
             }
         }
         return processedList;
+    }
+
+    /**
+     * Display the snapshots of each process state.
+     *
+     * @param waitBetweenPages - boolean to wait for command line input or not.
+     */
+    @Override
+    public void displayState(boolean waitBetweenPages) {
+        System.out.println("Current Time: " + algorithmTotalTime);
+        System.out.println();
+        System.out.println("Next process on CPU: " +
+                ((currentRunningProcess == null) ? "<none>" : currentRunningProcess.getName()) + ", duration: " +
+                ((currentRunningProcess == null) ? "<none>" : currentRunningProcess.getCurrentDuration()));
+        System.out.println(".......................................................");
+        System.out.println();
+        System.out.println("List of processes in the ready queue:");
+        System.out.println();
+        System.out.println("\t\tProcess\t\tBurst");
+        for (Process p : pq) {
+            System.out.println("\t\t\t" + p.getName() + "\t\t" + p.getCurrentDuration());
+        }
+        System.out.println();
+        System.out.println(".......................................................");
+        System.out.println("List of processes in I/O:");
+        System.out.println();
+        System.out.println("\t\tProcess\tRemaining I/O time");
+        for (Process p : ioQueue) {
+            System.out.println(p.getName());
+            System.out.println("\t\t\t" + p.getName() + "\t\t" + p.getCurrentDuration());
+        }
+        System.out.println(".......................................................");
+        System.out.println();
+        System.out.print("Finished processes: ");
+        for (Process p : processedList) System.out.print(p.getName() + " ");
+        System.out.println();
+        System.out.println(":::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+        System.out.println();
+        System.out.println();
+        if (waitBetweenPages) {
+            System.out.println("Press ENTER to continue...");
+            try {
+                System.in.read();
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+    }
+
+    /**
+     * Set display mode.
+     *
+     * @param displayMode - true to show data else false.
+     */
+    @Override
+    public void setDisplayMode(boolean displayMode) {
+        this.displayMode = displayMode;
+    }
+
+    /**
+     * Get the total number of clock ticks elapsed during the algorithm's run.
+     *
+     * @return
+     */
+    @Override
+    public int getTotalElapsedTime() {
+        return algorithmTotalTime;
+    }
+
+    /**
+     * Get the total number of clock ticks when the CPU was idle during the algorithm's run.
+     *
+     * @return
+     */
+    @Override
+    public int getTotalIdleCPUTime() {
+        return 0;
     }
 
     /**
