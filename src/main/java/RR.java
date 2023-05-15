@@ -59,20 +59,27 @@ public class RR implements ScheduleInterface {
                 currentRunningProcess = currProc;
                 displayState(false);
             }
+
             if (currProc.getCurrentState() == Process.State.WAITING) {
                 int delta = algorithmTotalTime - currProc.getEnterWaitState();
                 // adds wait time to total wait time and total time
                 currProc.wait(delta);
             }
+
             ioQueue.remove(currProc);
             // Run process for entire burst or quantum whichever is shortest
             int runDuration = Math.min(currProc.nextBurstDuration(), timeQuantum);
+            if (currProc.getFirstRuntTime() == -1) {
+                currProc.setFirstRunTime(algorithmTotalTime);
+            }
             currProc.execute(runDuration);
             algorithmTotalTime += runDuration;
+
             // if finished processing add to processed list
             if (currProc.isFinished()) {
-                processedList.add(currProc);
                 ioQueue.remove(currProc);
+                processedList.add(currProc);
+
             }
 
             if (currProc.getCurrentState() == Process.State.IO) {
@@ -85,6 +92,7 @@ public class RR implements ScheduleInterface {
                 queue.add(currProc);
             }
         }
+
         if (displayMode) {
             currentRunningProcess = null;
             displayState(false);
