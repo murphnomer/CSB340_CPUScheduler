@@ -82,6 +82,7 @@ public class FCFS implements ScheduleInterface{
     }
 
 
+
     @Override
     public void displayState(boolean waitBetweenPages) {
         System.out.println("\n\nCurrent Time: " + currentTime);
@@ -182,5 +183,15 @@ public class FCFS implements ScheduleInterface{
     @Override
     public void setDisplayMode(boolean displayMode) {
         this.displayMode = displayMode;
+    }
+
+    @Override
+    public int getTotalElapsedTime() {
+        return currentTime;
+    }
+
+    @Override
+    public int getTotalIdleCPUTime() {
+        return currentTime - (int)cpuTime;
     }
 }

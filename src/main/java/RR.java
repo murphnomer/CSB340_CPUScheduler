@@ -123,6 +123,20 @@ public class RR implements ScheduleInterface {
     public void setDisplayMode(boolean display) {
         displayMode = display;
     }
+    /**
+     * {@inheritDoc}
+     */
+    public int getTotalIdleCPUTime() {
+        return 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public int getTotalElapsedTime() {
+        return algorithmTotalTime;
+    }
+
 
     /**
      * Display consecutive snapshots of each iteration of the algorithm.

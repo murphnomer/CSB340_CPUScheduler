@@ -101,15 +101,16 @@ public class SJF implements ScheduleInterface {
               // if no currently running process, the if the ready queue is not empty
             } else if (readyQueue.size() > 0) {
                 // ensure the CPU is not set to idle
-                cpuIsIdle = false;
                 // if the process currently on the processor is not running, that means it must have finished on the
                 // previous tick, so send it to IO and choose the next process
                 if (cpuIsIdle || procOnCPU.getCurrentState() != Process.State.RUNNING) {
+                    cpuIsIdle = false;
                     // pick the next process from the ready queue
                     procOnCPU = readyQueue.remove();
                     // print output for this context switch if desired
                     if (displayMode) displayState(false);
                 }
+                cpuIsIdle = false;
                 // set the selected process to running
                 procOnCPU.setCurrentState(Process.State.RUNNING);
             } else {
