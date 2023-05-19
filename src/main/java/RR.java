@@ -18,7 +18,7 @@ public class RR implements ScheduleInterface {
      * Default constructor.
      */
     public RR() {
-        timeQuantum = 10;
+        timeQuantum = 5;
     }
 
     /**
@@ -26,7 +26,7 @@ public class RR implements ScheduleInterface {
      * @param toProcessList - List of Processes.
      */
     public RR(List<Process> toProcessList) {
-        timeQuantum = 10;
+        timeQuantum = 5;
         queue.addAll(toProcessList);
     }
 
