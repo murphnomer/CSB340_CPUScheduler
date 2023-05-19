@@ -46,7 +46,7 @@ public class Main {
         totalTime = algo.getTotalElapsedTime();
         System.out.println();
         System.out.printf("Tw (avg): %.1f TTr (avg): %.1f Tr (avg): %.1f%n", totalWT / size, totalTT / size, totalRT / size);
-        System.out.print("Total Time: " + idleTime + " Idle Time: " + totalTime + " CPU Util: ");
+        System.out.print("Total Time: " + totalTime + " Idle Time: " + idleTime + " CPU Util: ");
         System.out.printf("%.1f", ((1.0 * totalTime - idleTime) / totalTime) * 100);
         System.out.println("%");
 
