@@ -2,23 +2,29 @@ import java.security.PrivateKey;
 import java.util.*;
 
 /**
- * Priority scheduling class.
+ * First Come, First Served scheduling class.
  *
  * @author Derrek Do
  */
 public class FCFS implements ScheduleInterface{
-
+    //Ready queue for each process
     private Queue<Process> inReadyQueue;
+    //List of processes in IO
     private List<Process> inIO = new LinkedList<>();
+    //list process that have completed all bursts
     private List<Process> completed;
+    //List of all processes
     private List<Process> processes;
+    //number of processes
     private int size;
+    //Data and results regarding process runtimes
     private int currentTime;
     private double cpuTime = 0;
     private double totWaitTime;
     private double totTurnaroundTime;
     private double totResponseTime;
-    private Process current;
+    //current process running
+    private Process processOnCpu;
     boolean displayMode;
 
     public FCFS(List<Process> readyQueue) {
@@ -32,23 +38,31 @@ public class FCFS implements ScheduleInterface{
 
     public List<Process> process() {
         int burstDuration = 0;
+        //Runs each processes until they complete all bursts
         while (completed.size() != size) {
-            current = inReadyQueue.poll();
-            if (current != null) {
-                burstDuration = current.nextBurstDuration();
-                current.setCurrentState(Process.State.RUNNING);
+            //removes the first process from queue
+            processOnCpu = inReadyQueue.poll();
+            //checks if a process was removed
+            if (processOnCpu != null) {
+                //record its burst duration and set state to RUNNING
+                burstDuration = processOnCpu.nextBurstDuration();
+                processOnCpu.setCurrentState(Process.State.RUNNING);
             } else {
-                if (current == null) {
+                //If there were no process to run, wait for process in I/O
+                if (processOnCpu == null) {
                     burstDuration = inIO.get(0).nextBurstDuration();
                 }
+                //Finds the process with the lowest current I/O time
                 for (Process process : inIO) {
                     burstDuration = Math.min(burstDuration, process.getCurrentDuration());
                 }
-                //TODO: make IO time decrease while no running process
             }
+            //determines if the data will be shown
             if (displayMode) {
                 displayState(false);
             }
+            //Ticks each process base on the current CPU or I/O burst
+            //updates run time,wait time, and I/O time based on each processes current state
             tickProcess(burstDuration);
         }
         if (displayMode) {
@@ -58,16 +72,23 @@ public class FCFS implements ScheduleInterface{
     }
 
     public void tickProcess(int burstDuration) {
+        //adds current burst duration to total time
         currentTime += burstDuration;
+        //loop runs until the burst finishes
         while (burstDuration > 0) {
+            //iterates through each process
             for (Process current : processes) {
+                //runs the tick method on the current process
                 current.tick();
+                //if the current running process completes is CPU burst, send to I/O
                 if (current.getCurrentState() == Process.State.IO && !inIO.contains(current)) {
                     inIO.add(current);
                     inReadyQueue.remove(current);
+                    //If any process I/O burst finishes, send to ready queue
                 } else if (current.getCurrentState() == Process.State.WAITING && !inReadyQueue.contains(current)) {
                     inReadyQueue.add(current);
                     inIO.remove(current);
+                    //if the process finishes all bursts, add to list of completed processes, and record all data
                 } else if (current.getCurrentState() == Process.State.FINISHED && !completed.contains(current)) {
                     completed.add(current);
                     totWaitTime += current.getWaitingTime();
@@ -87,8 +108,8 @@ public class FCFS implements ScheduleInterface{
     public void displayState(boolean waitBetweenPages) {
         System.out.println("\n\nCurrent Time: " + currentTime);
         System.out.print("Next Process on CPU: ");
-        if (current != null && current.getCurrentState() == Process.State.RUNNING) {
-            System.out.println(current.getName() + " \nBurst Time: " + current.getCurrentDuration());
+        if (processOnCpu != null && processOnCpu.getCurrentState() == Process.State.RUNNING) {
+            System.out.println(processOnCpu.getName() + " \nBurst Time: " + processOnCpu.getCurrentDuration());
         } else {
             System.out.println("IDLE");
         }
