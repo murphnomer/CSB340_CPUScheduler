@@ -14,6 +14,7 @@
    5. [Round-Robin](#round-robin)
    6. [Multi-level Queue](#multi-level-queue)
    7. [Multi-level Feedback Queue](#multi-level-feedback-queue)
+8. [Process](#process)
 8. [UML Diagram](#uml-diagram)
 9. [Data](#results)
    10. [First Come First Served Results](#first-come-first-served-results)
@@ -24,15 +25,20 @@
    15. [Multi-level Feedback Queue Results](#multi-level-feedback-queue-results)
 16. [Conclusion](#conclusion)
 
-
 ## Introduction
 
-In comparing these algorithms the criteria used is CPU utilization, throughput, turnaround time,
-waiting time, and response time.
+The goals of this project were to implement several scheduling algorithms to simulate CPU scheduling.
+Then compare and contrast the results based on an agreed upon criteria. In comparing these algorithms
+the criteria used is: CPU utilization, throughput, turnaround time, waiting time, and response time.
 
 ## Algorithms
 
 ### First Come First Served
+
+How this queue works is pretty well outlined by its name. The processes are run in the order
+received with no preemption.
+
+TODO: Derrek add your implementation details here
 
 ### Priority
 
@@ -50,11 +56,12 @@ The algorithm that is implemented here uses this solution.
 
 ### Shortest Job First
 
-This algorithm is a variation of the above described Priority algorithm. The priority in this case is
-the length of the process job duration. As the title states the highest priority goes to
+This algorithm is a variation of the above described Priority algorithm. The priority in this
+case is the length of the process job duration. As the title states the highest priority goes to
 the shortest duration. There is a preemptive and non-preemptive version. The algorithm in this
 report is the non-preemptive implementation.
 
+TODO: Mike add impementation details here
 
 ### Round-Robin
 
@@ -68,16 +75,43 @@ or in a piece at a time until completion.
 
 ### Multi-level Queue
 
+This design has multiple queues each that hold a different priority per level. A process
+comes in with a priority assigned then it is transferred to the queue that processes
+that priority. There are different ways that these queues can be designed to run the processes.
+One way could be that the queue that handles all the highest priority processes will
+always run first before any of the other queues. Another design choice is to provide a time
+slice to split up how different queues are run.
+
+TODO: Mike add details of your implementation here
+
 ### Multi-level Feedback Queue
+
+This queue also has levels of queues that handle different processes. In this design the processes
+are split up by a characteristic of their bursts. Usually duration. So if a process does not
+complete their burst within a certain quantum (duration period) it will be moved to a lower
+queue. This algorithm's underlying queues can be round-robin, priority, FCFS, etc.
+
+TODO: Derrek add your implementation details here
+
+## Design Process
+
+We decided to approach this from the bottom up writing the FCFS and Round Robin algorithms
+so that we could compose the Multi-level queues with them. One flaw with this logic, or at
+least in our planning, was that we did not develop those algorithms to function as a part
+of another algorithm. Due to the difficulty in modifying the previously implemented algorithms
+the Multi-level Queue and Multi-level Feedback Queue were designed with their own logic that did
+not involve the composition of previous algorithms. A design from the top down may have provided
+a better perspective on how we needed those algorithms to function from the perspective of
+use with the ML queues.
 
 ## UML Diagram
 
 ## Results
 
-Insert Diagrams, tables, plots, and discussions here
+TODO: Insert Diagrams, tables, plots, and discussions here
 
-Discussion should be spent comparing algorithm performance and deciding on the best solution to implement.
-Why its the best solution and why not should also be discussed.
+TODO: Discussion should be spent comparing algorithm performance and deciding on the best solution
+to implement. Why its the best solution and why not should also be discussed.
 
 ### First Come First Served Results
 
