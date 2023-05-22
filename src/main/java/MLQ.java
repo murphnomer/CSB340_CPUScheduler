@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -25,7 +26,17 @@ public class MLQ implements ScheduleInterface {
     // switch variable indicating whether to display state at every context switch
     private boolean displayMode = false;
 
-    public
+    public MLQ(List<Process> foregroundProcesses, List<Process> backgroundProcesses, int foregroundTimeQuantum) {
+        timer = 0;
+        idleCPUTime = 0;
+        cpuIsIdle = true;
+        foregroundQueue = new RR(foregroundTimeQuantum, foregroundProcesses);
+        backgroundQueue = new FCFS(backgroundProcesses);
+        allProcesses = new ArrayList<>();
+        finishedProcesses = new ArrayList<>();
+        totalNumberOfProcesses = foregroundProcesses.size() + backgroundProcesses.size();
+
+    }
 
     @Override
     public List<Process> process() {
