@@ -96,15 +96,19 @@ public class RR implements ScheduleInterface {
                 tick();
             }
         }
-
+        // last snapshot
         if (displayMode) {
             currentRunningProcess = null;
             displayState(false);
         }
-
+        // end snapshot logic
         return processedList.stream().toList();
     }
 
+    /**
+     * Run updates on all processes, check their states after each tick,
+     * and move/remove them from the appropriate lists and queues.
+     */
     private void tick() {
         algorithmTotalTime++;
         for (Process proc : allProcesses) {
