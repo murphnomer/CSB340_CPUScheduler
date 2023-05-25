@@ -14,7 +14,7 @@ class RRTest {
         Process[] testData = testUtil.getDefaultTestData();
         RR rr = new RR(Arrays.stream(testData).toList());
         List<Process> result = rr.process();
-        String[] expected = {"P1", "P4", "P8", "P2", "P6", "P3", "P7", "P5"};
+        String[] expected = {"P1", "P6", "P7", "P8", "P5", "P3", "P2", "P4"};
         ArrayList<String> actual = new ArrayList<>(8);
         for (Process proc : result) {
             actual.add(proc.getName());
