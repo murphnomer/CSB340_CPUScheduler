@@ -72,13 +72,6 @@ public class RR implements ScheduleInterface {
     public List<Process> process() {
         while (processedList.size() != allProcesses.size()) {
             Process currProc = readyQ.poll();
-            // Display logic
-            if (displayMode) {
-                currentRunningProcess = currProc;
-                displayState(false);
-            }
-            // end display logic
-
             // Ready queue contains processes
             if (currProc != null) {
                 currProc.setCurrentState(Process.State.RUNNING);
@@ -86,9 +79,21 @@ public class RR implements ScheduleInterface {
                 int runDuration = Math.min(currProc.nextBurstDuration(), timeQuantum);
                 int tick = 0;
                 while (tick < runDuration) {
+                    // Display logic
+                    if (displayMode) {
+                        currentRunningProcess = currProc;
+                        displayState(false);
+                    }
+                    // end display logic
                     tick();
                     cpuTime += currProc.getCpuTime();
                     tick++;
+                }
+                // if it is still in running state it didn't complete it's burst then set to waiting
+                // and move back into ready queue
+                if (currProc.getCurrentState() == Process.State.RUNNING) {
+                    currProc.setCurrentState(Process.State.WAITING);
+                    readyQ.add(currProc);
                 }
             } else { // Nothing in readyQ everything out for IO in ioQ or complete
                 // nothing on readyQ so track cpu idle time
@@ -127,8 +132,9 @@ public class RR implements ScheduleInterface {
                 ioQ.add(proc);
             }
 
+            // If the process has been set to waiting since the last tick then it can be moved
+            // to the ready queue if it is not already there.
             if (proc.getCurrentState() == Process.State.WAITING && !readyQ.contains(proc)) {
-                // The CPU burst did not run its full duration so send back to readyQ
                 Process firstIoCompletedProcess = ioQ.poll();
                 // if there is a process in IO the first one in the queue will be the first to be ready to move
                 if (firstIoCompletedProcess != null) {
