@@ -127,7 +127,7 @@ public class RR implements ScheduleInterface {
                 ioQ.add(proc);
             }
 
-            if (proc.getCurrentState() == Process.State.WAITING) {
+            if (proc.getCurrentState() == Process.State.WAITING && !readyQ.contains(proc)) {
                 // The CPU burst did not run its full duration so send back to readyQ
                 Process firstIoCompletedProcess = ioQ.poll();
                 // if there is a process in IO the first one in the queue will be the first to be ready to move
