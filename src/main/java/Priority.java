@@ -76,18 +76,18 @@ public class Priority implements ScheduleInterface {
     public List<Process> process() {
         while (processedList.size() != allProcesses.size()) {
             Process currProc = readyQ.poll();
-            // display logic
-            if (displayMode) {
-                currentRunningProcess = currProc;
-                displayState(false);
-            }
-            // end display logic
             // Ready queue contains processes
             if (currProc != null) {
                 currProc.setCurrentState(Process.State.RUNNING);
                 int runDuration = currProc.getCurrentDuration();
                 int tick = 0;
                 while (tick < runDuration) {
+                    // display logic
+                    if (displayMode) {
+                        currentRunningProcess = currProc;
+                        displayState(false);
+                    }
+                    // end display logic
                     tick();
                     cpuTime += currProc.getCpuTime();
                     tick++;
@@ -170,7 +170,6 @@ public class Priority implements ScheduleInterface {
         System.out.println();
         System.out.println("\t\tProcess\tRemaining I/O time");
         for (Process p : ioQ) {
-            System.out.println(p.getName());
             System.out.println("\t\t\t" + p.getName() + "\t\t" + p.getCurrentDuration());
         }
         System.out.println(".......................................................");
