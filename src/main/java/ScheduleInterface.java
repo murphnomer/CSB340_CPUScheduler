@@ -3,7 +3,7 @@ import java.util.List;
 /**
  * Interface for scheduling algorithms.
  *
- * @author Jared Scarr
+ * @author Jared Scarr, Mike Murphy
  */
 public interface ScheduleInterface {
     /**
@@ -18,6 +18,11 @@ public interface ScheduleInterface {
      */
     public void displayState(boolean waitBetweenPages);
 
+    /**
+     * Return the current display mode.
+     * @return - boolean.
+     */
+    public boolean getDisplayMode();
     /**
      * Set display mode.
      * @param displayMode - true to show data else false.

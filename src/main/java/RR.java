@@ -24,7 +24,7 @@ public class RR implements ScheduleInterface {
     private final int timeQuantum;
     private int algorithmTotalTime = 0;
     private Process currentRunningProcess = null;
-    private boolean displayMode = true;
+    private boolean displayMode = false;
 
     private int cpuTime = 0;
     private int cpuIdleTime = 0;
@@ -150,6 +150,13 @@ public class RR implements ScheduleInterface {
      */
     public void addProcess(Process proc) {
         readyQ.add(proc);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean getDisplayMode() {
+        return displayMode;
     }
 
     /**

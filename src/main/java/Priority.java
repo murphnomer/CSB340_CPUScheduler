@@ -23,7 +23,7 @@ public class Priority implements ScheduleInterface {
     });
     private final Set<Process> processedList  = new LinkedHashSet<>();
     private int algorithmTotalTime = 0;
-    private boolean displayMode = true;
+    private boolean displayMode = false;
     private Process currentRunningProcess = null;
 
     private int cpuTime = 0;
@@ -190,6 +190,13 @@ public class Priority implements ScheduleInterface {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean getDisplayMode() {
+        return displayMode;
+    }
     /**
      * Set display mode.
      *

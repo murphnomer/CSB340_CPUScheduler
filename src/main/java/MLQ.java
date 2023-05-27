@@ -190,6 +190,7 @@ public class MLQ implements ScheduleInterface {
     /**
      * {@inheritDoc}
      */
+    @Override
     public int getTotalIdleCPUTime() {
         return idleCPUTime;
     }
@@ -197,6 +198,7 @@ public class MLQ implements ScheduleInterface {
     /**
      * {@inheritDoc}
      */
+    @Override
     public int getTotalElapsedTime() {
         return timer;
     }
@@ -204,8 +206,17 @@ public class MLQ implements ScheduleInterface {
      * Set boolean variable for the display mode.
      * @param displayMode - boolean default true.
      */
+    @Override
     public void setDisplayMode(boolean displayMode) {
         this.displayMode = displayMode;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean getDisplayMode() {
+        return displayMode;
     }
 
     /**

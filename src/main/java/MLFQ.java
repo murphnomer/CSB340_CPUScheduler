@@ -267,16 +267,33 @@ public class MLFQ implements ScheduleInterface{
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean getDisplayMode() {
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setDisplayMode(boolean displayMode) {
         this.displayMode = displayMode;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getTotalElapsedTime() {
         return currentTime;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getTotalIdleCPUTime() {
         return currentTime - (int)cpuTime;
