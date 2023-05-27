@@ -61,7 +61,9 @@ One way of solving this issue is by providing some sort of aging criteria which
 would bump the priority of a process that has been in the queue for a certain amount of time.
 Eventually, or probably, it would be processed. Another way to solve this is
 by using a round-robin algorithm for processes that come in with the same priority level.
-The algorithm that is implemented here uses this solution.
+
+For this experiment a starvation solution was not implemented as it was beyond the scope of
+this work.
 
 ### Shortest Job First
 

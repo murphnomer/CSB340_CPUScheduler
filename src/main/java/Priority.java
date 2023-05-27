@@ -1,21 +1,33 @@
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
 
 /**
  * Priority scheduling class.
  *
  * @author Jared Scarr
  */
+
 public class Priority implements ScheduleInterface {
-    private PriorityQueue<Process> pq = this.getPriorityQueue(false);
+    public List<Process> allProcesses = new ArrayList<>();
+    private PriorityQueue<Process> readyQ = this.getPriorityQueue(false);
     private final RR rr = new RR();
-    private final List<Process> ioQueue = new ArrayList<>();
-    private List<Process> processedList = new ArrayList<>();;
+    private final Queue<Process> ioQ = new PriorityQueue<>(new Comparator<Process>() {
+        public int compare(Process a, Process b) {
+            if (a.getCurrentDuration() >= b.getCurrentDuration()) {
+                return 1;
+            }
+            if (a.getCurrentDuration() < b.getCurrentDuration()) {
+                return -1;
+            }
+            return 0;
+        }
+    });
+    private final Set<Process> processedList  = new LinkedHashSet<>();
     private int algorithmTotalTime = 0;
     private boolean displayMode = true;
     private Process currentRunningProcess = null;
+
+    private int cpuTime = 0;
+    private int cpuIdleTime = 0;
 
     /**
      * Default constructor.
@@ -27,7 +39,7 @@ public class Priority implements ScheduleInterface {
      * @param desc - boolean flag.
      */
     public Priority(boolean desc) {
-        pq = getPriorityQueue(desc);
+        readyQ = getPriorityQueue(desc);
     }
 
     /**
@@ -35,7 +47,8 @@ public class Priority implements ScheduleInterface {
      * @param procList - List of Process classes.
      */
     public Priority(List<Process> procList) {
-        pq.addAll(procList);
+        allProcesses.addAll(procList);
+        readyQ.addAll(procList);
     }
     /**
      * Constructor with boolean flag and list of processes.
@@ -43,7 +56,8 @@ public class Priority implements ScheduleInterface {
      * @param procList - List of Process classes.
      */
     public Priority(boolean desc, List<Process> procList) {
-        pq.addAll(procList);
+        allProcesses.addAll(procList);
+        readyQ.addAll(procList);
     }
 
     /**
@@ -51,7 +65,8 @@ public class Priority implements ScheduleInterface {
      * @param proc - Process class.
      */
     public void addProcess(Process proc) {
-        pq.add(proc);
+        allProcesses.add(proc);
+        readyQ.add(proc);
     }
 
     /**
@@ -59,64 +74,69 @@ public class Priority implements ScheduleInterface {
      * @return - List of processes in the order that they were processed.
      */
     public List<Process> process() {
-        List<Process> completedProcessList = null;
-        // Get the first process
-        Process currProc = null;
-
-        while (!pq.isEmpty()) {
-            currProc = pq.poll();
-
-            if (displayMode) {
-                currentRunningProcess = currProc;
-                displayState(false);
-            }
-
-            if (currProc.getFirstRuntTime() == -1) {
-                currProc.setFirstRunTime(algorithmTotalTime);
-            }
-
-            if (currProc.getCurrentState() == Process.State.WAITING) {
-                // adds wait time to total wait time and total time
-                currProc.wait(algorithmTotalTime - currProc.getEnterWaitState());
-            }
-            // Check for priorities of equal value and deal with
-            // round-robin algorithm to prevent starvation
-            while (currProc != null && pq.peek() != null && currProc.getPriority() == pq.peek().getPriority()) {
-                if (currProc.getFirstRuntTime() == -1) {
-                    currProc.setFirstRunTime(algorithmTotalTime);
+        while (processedList.size() != allProcesses.size()) {
+            Process currProc = readyQ.poll();
+            // Ready queue contains processes
+            if (currProc != null) {
+                currProc.setCurrentState(Process.State.RUNNING);
+                int runDuration = currProc.getCurrentDuration();
+                int tick = 0;
+                while (tick < runDuration) {
+                    // display logic
+                    if (displayMode) {
+                        currentRunningProcess = currProc;
+                        displayState(false);
+                    }
+                    // end display logic
+                    tick();
+                    cpuTime += currProc.getCpuTime();
+                    tick++;
                 }
-                rr.addProcess(currProc);
-                currProc = pq.poll();
-                if (currProc.getFirstRuntTime() == -1) {
-                    currProc.setFirstRunTime(algorithmTotalTime);
-                }
-                currProc.wait(algorithmTotalTime - currProc.getEnterWaitState());
-                rr.addProcess(currProc);
-            }
-            // run round-robin for equal priorities if they exists
-            if (!rr.isEmpty()) {
-                completedProcessList = rr.process();
-                ioQueue.removeAll(completedProcessList);
-                processedList.addAll(completedProcessList);
             } else {
-                if (currProc.getCurrentState() == Process.State.IO) {
-                    ioQueue.add(currProc);
-                } else {
-                    ioQueue.remove(currProc);
-                }
-                currProc.execute(currProc.nextBurstDuration());
-                algorithmTotalTime += currProc.nextBurstDuration();
-                // if finished remove from io processes
-                // add to processedList else add back to priority queue
-                if (currProc.isFinished()) {
-                    ioQueue.remove(currProc);
-                    processedList.add(currProc);
-                } else {
-                    pq.add(currProc);
+                cpuIdleTime++;
+                tick();
+            }
+        }
+        // last snapshot
+        if (displayMode) {
+            currentRunningProcess = null;
+            displayState(false);
+        }
+        // end snapshot logic
+        return processedList.stream().toList();
+    }
+
+    /**
+     * Run updates on all processes, check their states after each tick,
+     * and move/remove them from the appropriate lists and queues.
+     */
+    private void tick() {
+        algorithmTotalTime++;
+        for (Process proc : allProcesses) {
+            proc.tick();
+            if (proc.isFinished()) {
+                proc.setCurrentState(Process.State.FINISHED);
+                readyQ.remove(proc);
+                ioQ.remove(proc);
+                processedList.add(proc);
+            }
+            // only proc to IO queue if in the correct state AND isn't already there
+            // otherwise it will have repeat processes in the ioQ
+            if (proc.getCurrentState() == Process.State.IO && !ioQ.contains(proc)) {
+                // The CPU burst has completed so send to IO
+                readyQ.remove(proc);
+                ioQ.add(proc);
+            }
+
+            if (proc.getCurrentState() == Process.State.WAITING && !readyQ.contains(proc)) {
+                // Add back to ready after IO burst completes
+                Process firstIoCompletedProcess = ioQ.poll();
+                // if there is a process in IO the first one in the queue will be the first to be ready to move
+                if (firstIoCompletedProcess != null) {
+                    readyQ.add(firstIoCompletedProcess);
                 }
             }
         }
-        return processedList;
     }
 
     /**
@@ -126,6 +146,11 @@ public class Priority implements ScheduleInterface {
      */
     @Override
     public void displayState(boolean waitBetweenPages) {
+        System.out.println("Process burst reference:");
+        for (Process p : allProcesses) {
+            System.out.println(p.toString());
+        }
+        System.out.println(".......................................................");
         System.out.println("Current Time: " + algorithmTotalTime);
         System.out.println();
         System.out.println("Next process on CPU: " +
@@ -136,7 +161,7 @@ public class Priority implements ScheduleInterface {
         System.out.println("List of processes in the ready queue:");
         System.out.println();
         System.out.println("\t\tProcess\t\tBurst");
-        for (Process p : pq) {
+        for (Process p : readyQ) {
             System.out.println("\t\t\t" + p.getName() + "\t\t" + p.getCurrentDuration());
         }
         System.out.println();
@@ -144,8 +169,7 @@ public class Priority implements ScheduleInterface {
         System.out.println("List of processes in I/O:");
         System.out.println();
         System.out.println("\t\tProcess\tRemaining I/O time");
-        for (Process p : ioQueue) {
-            System.out.println(p.getName());
+        for (Process p : ioQ) {
             System.out.println("\t\t\t" + p.getName() + "\t\t" + p.getCurrentDuration());
         }
         System.out.println(".......................................................");
@@ -193,7 +217,7 @@ public class Priority implements ScheduleInterface {
      */
     @Override
     public int getTotalIdleCPUTime() {
-        return 0;
+        return cpuIdleTime;
     }
 
     /**
