@@ -353,15 +353,12 @@ public class Process implements Comparable<Process> {
     }
 
     public int getCurrentDuration() {
-        if (bursts.peek() == null) {
-            setCurrentState(State.FINISHED);
-            return 0;
-        }
-        return bursts.peek().duration;
+        return (isFinished() ? 0 : bursts.peek().duration);
+
     }
 
     public BurstType getCurrentBurstType() {
-        return bursts.peek().type;
+        return (isFinished() ? null : bursts.peek().type);
     }
 
     /**
