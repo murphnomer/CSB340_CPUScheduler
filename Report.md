@@ -38,7 +38,6 @@ the criteria used is: CPU utilization, throughput, turnaround time, waiting time
 How this queue works is pretty well outlined by its name. The processes are run in the order
 received with no preemption.
 
-TODO: Derrek add your implementation details here
 This algorithm checks the ready queue and removes the first process in it and runs it for its current CPU burst duration.
 Once ran, the process gets sent to I/O and stays there until it's I/O burst finishes. The next process in the queue
 is then ran for its current CPU burst duration. If any process is in I/O its I/O burst will decrease based on the current running
@@ -48,7 +47,7 @@ have finished all of its I/O and CPU bursts.
 Implementing the FCFS algorithm started off as a difficult task, as their was multiple things that needed to be checked before, during, and after a process ran.
 I had to slowly run the program and make sure numbers looked right at each instance. The sample FCFS data file provided helped me recognize that I was implementing
 the algorithm properly, and have the algorithm finish running with all the correct data.
-![FCFS Data](data&charts/FCFS_Data.PNG)
+
 
 ### Priority
 
@@ -101,7 +100,6 @@ are split up by a characteristic of their bursts. Usually duration. So if a proc
 complete their burst within a certain time quantum (duration period) it will be moved to a lower
 queue. This algorithm's underlying queues can be round-robin, priority, FCFS, etc.
 
-TODO: Derrek add your implementation details here
 This algorithm uses three queues each with their own priority level. The first queue(Q1) uses the RR schdeuling
 with a time quantum of 5 and is highest level queue meaning it has absolute priority. The next queue(Q2) is also uses a RR
 schdeuling but with a time quantum of 10 and has the second highest priority. The next and last queue(Q3) in this algorithm
@@ -118,7 +116,6 @@ Implementing this algorithm was much more difficult to implement as it uses 3 di
 Having to keep track of which queue a process belong to, and making sure numbers looked right made it really messy to
 debug when trying to figure what went wrong in the logic as we get further in the algorithm runtime. I was eventually able 
 to have it finish running and display data
-![MLFQ Data](data&charts/MLFQ_Data.PNG)
 
 ## Design Process
 
@@ -141,6 +138,7 @@ TODO: Discussion should be spent comparing algorithm performance and deciding on
 to implement. Why its the best solution and why not should also be discussed.
 
 ### First Come First Served Results
+![FCFS Data](data&charts/FCFS_Data.PNG)
 
 ### Shortest Job First Results
 
@@ -151,6 +149,7 @@ to implement. Why its the best solution and why not should also be discussed.
 ### Multi-level Queue Results
 
 ### Multi-level Feedback Queue Results
+![MLFQ Data](data&charts/MLFQ_Data.PNG)
 
 ## Conclusion
 
