@@ -133,6 +133,7 @@ use with the ML queues.
 ## UML Diagram
 
 ## Results
+![Results](data&charts/All_Algo_Data.PNG)
 
 TODO: Insert Diagrams, tables, plots, and discussions here
 
@@ -143,12 +144,19 @@ to implement. Why its the best solution and why not should also be discussed.
 ![FCFS Data](data&charts/FCFS_Data.PNG)
 
 ### Shortest Job First Results
+![SJF Data](data&charts/SJF_Data.PNG)
 
 ### Priority Results
+![Priority Data](data&charts/Priority_Data.PNG)
+
 
 ### Round-Robin Results
+![RR Data](data&charts/RR_Data.PNG)
+
 
 ### Multi-level Queue Results
+![MLQ Data](data&charts/MLQ_Data.PNG)
+
 
 ### Multi-level Feedback Queue Results
 ![MLFQ Data](data&charts/MLFQ_Data.PNG)
