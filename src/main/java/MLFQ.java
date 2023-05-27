@@ -1,5 +1,10 @@
 import java.util.*;
 
+/**
+ * Multi Level Feedback Queue scheduling class.
+ *
+ * @author Derrek Do
+ */
 public class MLFQ implements ScheduleInterface{
     //holds data for which queue a process belongs to
     private TreeMap<Process, Integer> currentPriority;
