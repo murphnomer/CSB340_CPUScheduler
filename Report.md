@@ -38,7 +38,16 @@ the criteria used is: CPU utilization, throughput, turnaround time, waiting time
 How this queue works is pretty well outlined by its name. The processes are run in the order
 received with no preemption.
 
-TODO: Derrek add your implementation details here
+This algorithm checks the ready queue and removes the first process in it and runs it for its current CPU burst duration.
+Once ran, the process gets sent to I/O and stays there until it's I/O burst finishes. The next process in the queue
+is then ran for its current CPU burst duration. If any process is in I/O its I/O burst will decrease based on the current running
+process CPU burst, once the I/O burst finishes it is sent back to the ready queue. This algorithm continues to run until all processes 
+have finished all of its I/O and CPU bursts.
+
+Implementing the FCFS algorithm started off as a difficult task, as their was multiple things that needed to be checked before, during, and after a process ran.
+I had to slowly run the program and make sure numbers looked right at each instance. The sample FCFS data file provided helped me recognize that I was implementing
+the algorithm properly, and have the algorithm finish running with all the correct data.
+
 
 ### Priority
 
@@ -90,10 +99,25 @@ TODO: Mike add details of your implementation here
 
 This queue also has levels of queues that handle different processes. In this design the processes
 are split up by a characteristic of their bursts. Usually duration. So if a process does not
-complete their burst within a certain quantum (duration period) it will be moved to a lower
+complete their burst within a certain time quantum (duration period) it will be moved to a lower
 queue. This algorithm's underlying queues can be round-robin, priority, FCFS, etc.
 
-TODO: Derrek add your implementation details here
+This algorithm uses three queues each with their own priority level. The first queue(Q1) uses the RR schdeuling
+with a time quantum of 5 and is highest level queue meaning it has absolute priority. The next queue(Q2) is also uses a RR
+schdeuling but with a time quantum of 10 and has the second highest priority. The next and last queue(Q3) in this algorithm
+uses a FCFS scheduling algorithm and has the lowest priority, meaning that processes in this queue will only be ran if the 
+higher priority queues are both empty.
+
+Once the algorithm runs, all process are placed in Q1. The first process that appears in that Q1 will run for the given time quantum, 
+if that process completes its CPU burst in the given time quantum it will be sent to I/O retaining the same priority; once that process finishes its I/O burst it will 
+move back to Q1. If any process does not finish in that time quantum, it will be prempted to Q2 and will not be able to run until Q1 is empty.
+When there are no longer and processes in the Q1 ready queue, the algorithm moves on to Q2 and runs those process with Q2's given time quantum.
+If a process is unable to finish in that time quantum it will be prempted to the lowest queue. 
+
+Implementing this algorithm was much more difficult to implement as it uses 3 different ready queues each with their own priority levels.
+Having to keep track of which queue a process belong to, and making sure numbers looked right made it really messy to
+debug when trying to figure what went wrong in the logic as we get further in the algorithm runtime. I was eventually able 
+to have it finish running and display data
 
 ## Design Process
 
@@ -109,6 +133,7 @@ use with the ML queues.
 ## UML Diagram
 
 ## Results
+![Results](data&charts/All_Algo_Data.PNG)
 
 TODO: Insert Diagrams, tables, plots, and discussions here
 
@@ -116,16 +141,25 @@ TODO: Discussion should be spent comparing algorithm performance and deciding on
 to implement. Why its the best solution and why not should also be discussed.
 
 ### First Come First Served Results
+![FCFS Data](data&charts/FCFS_Data.PNG)
 
 ### Shortest Job First Results
+![SJF Data](data&charts/SJF_Data.PNG)
 
 ### Priority Results
+![Priority Data](data&charts/Priority_Data.PNG)
+
 
 ### Round-Robin Results
+![RR Data](data&charts/RR_Data.PNG)
+
 
 ### Multi-level Queue Results
+![MLQ Data](data&charts/MLQ_Data.PNG)
+
 
 ### Multi-level Feedback Queue Results
+![MLFQ Data](data&charts/MLFQ_Data.PNG)
 
 ## Conclusion
 
