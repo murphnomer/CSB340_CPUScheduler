@@ -149,12 +149,21 @@ public class SJF implements ScheduleInterface {
     public int getTotalElapsedTime() {
         return timer;
     }
+
     /**
-     * Set boolean variable for the display mode.
-     * @param displayMode - boolean default true.
+     * {@inheritDoc}
      */
+    @Override
     public void setDisplayMode(boolean displayMode) {
         this.displayMode = displayMode;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean getDisplayMode() {
+        return displayMode;
     }
 
     /**
