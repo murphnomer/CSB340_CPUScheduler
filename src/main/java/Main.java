@@ -9,11 +9,13 @@ public class Main {
 
     public static void main(String[] args) {
         TestUtil util = new TestUtil();
+        List<Process> mlqFGProcs = new ArrayList<>();
         ScheduleInterface[] algorithms = {
                 new RR(Arrays.stream(util.getDefaultTestData()).toList()),
                 new SJF(util.getDefaultTestData()),
                 new FCFS(Arrays.stream(util.getDefaultTestData()).toList()),
-                new Priority(Arrays.stream(util.getDefaultTestData()).toList())
+                new Priority(Arrays.stream(util.getDefaultTestData()).toList()),
+                new MLQ(Arrays.stream(util.getDefaultTestData(),0,4).toList(), Arrays.stream(util.getDefaultTestData(),4,8).toList(), 4)
         };
         for (ScheduleInterface algo : algorithms) {
             algo.setDisplayMode(DISPLAY_MODE);
