@@ -138,21 +138,6 @@ public class Process implements Comparable<Process> {
     }
 
     /**
-     * Execute the current process. Check the next burst and send to the appropriate method.
-     * @param time - int
-     */
-    public void execute(int time) {
-        BurstType nextBurstType = nextBurstType();
-        if (nextBurstType == BurstType.CPU) {
-            runOnCPU(time);
-        }
-
-        if (nextBurstType == BurstType.IO) {
-            sendToIO();
-        }
-    }
-
-    /**
      * Simulates the process running on the CPU for some amount of time.  If the next burst in the queue is a CPU
      * burst, decrements the remaining time in the burst and removes the burst if time decrements to zero.
      *
@@ -369,6 +354,7 @@ public class Process implements Comparable<Process> {
 
     public int getCurrentDuration() {
         return (isFinished() ? 0 : bursts.peek().duration);
+
     }
 
     public BurstType getCurrentBurstType() {

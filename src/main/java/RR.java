@@ -6,13 +6,28 @@ import java.util.*;
  * @author Jared Scarr
  */
 public class RR implements ScheduleInterface {
-    private final Queue<Process> queue = new LinkedList<>();
-    private final List<Process> ioQueue = new ArrayList<>();
-    private final List<Process> processedList  = new ArrayList<>();;
+    public List<Process> allProcesses = new ArrayList<>();
+    private final Queue<Process> readyQ = new LinkedList<>();
+    // priority queue smallest duration is the highest priority
+    private final Queue<Process> ioQ = new PriorityQueue<>(new Comparator<Process>() {
+        public int compare(Process a, Process b) {
+            if (a.getCurrentDuration() >= b.getCurrentDuration()) {
+                return 1;
+            }
+            if (a.getCurrentDuration() < b.getCurrentDuration()) {
+                return -1;
+            }
+            return 0;
+        }
+    });
+    private final Set<Process> processedList  = new LinkedHashSet<>();
     private final int timeQuantum;
     private int algorithmTotalTime = 0;
     private Process currentRunningProcess = null;
     private boolean displayMode = true;
+
+    private int cpuTime = 0;
+    private int cpuIdleTime = 0;
 
     /**
      * Default constructor.
@@ -26,8 +41,9 @@ public class RR implements ScheduleInterface {
      * @param toProcessList - List of Processes.
      */
     public RR(List<Process> toProcessList) {
+        allProcesses = toProcessList;
+        readyQ.addAll(toProcessList);
         timeQuantum = 5;
-        queue.addAll(toProcessList);
     }
 
     /**
@@ -44,8 +60,9 @@ public class RR implements ScheduleInterface {
      * @param toProcessList - List of Processes.
      */
     public RR(int quantumLength, List<Process> toProcessList) {
+        allProcesses = toProcessList;
+        readyQ.addAll(toProcessList);
         timeQuantum = quantumLength;
-        queue.addAll(toProcessList);
     }
 
     /**
@@ -53,50 +70,78 @@ public class RR implements ScheduleInterface {
      * @return - list of completed processes in order of completion.
      */
     public List<Process> process() {
-        while (!isEmpty()) {
-            Process currProc = queue.poll();
-            if (displayMode) {
-                currentRunningProcess = currProc;
-                displayState(false);
-            }
-
-            if (currProc.getCurrentState() == Process.State.WAITING) {
-                int delta = algorithmTotalTime - currProc.getEnterWaitState();
-                // adds wait time to total wait time and total time
-                currProc.wait(delta);
-            }
-
-            ioQueue.remove(currProc);
-            // Run process for entire burst or quantum whichever is shortest
-            int runDuration = Math.min(currProc.nextBurstDuration(), timeQuantum);
-            if (currProc.getFirstRuntTime() == -1) {
-                currProc.setFirstRunTime(algorithmTotalTime);
-            }
-            currProc.execute(runDuration);
-            algorithmTotalTime += runDuration;
-
-            // if finished processing add to processed list
-            if (currProc.isFinished()) {
-                ioQueue.remove(currProc);
-                processedList.add(currProc);
-            }
-
-            if (currProc.getCurrentState() == Process.State.IO) {
-                ioQueue.add(currProc);
-                currProc.execute(runDuration);
-            }
-            // if not finished then return to the priority queue
-            if (currProc.getCurrentState() == Process.State.WAITING) {
-                currProc.setEnterWaitState(algorithmTotalTime);
-                queue.add(currProc);
+        while (processedList.size() != allProcesses.size()) {
+            Process currProc = readyQ.poll();
+            // Ready queue contains processes
+            if (currProc != null) {
+                currProc.setCurrentState(Process.State.RUNNING);
+                // Run process for entire burst or quantum whichever is shortest
+                int runDuration = Math.min(currProc.nextBurstDuration(), timeQuantum);
+                int tick = 0;
+                while (tick < runDuration) {
+                    // Display logic
+                    if (displayMode) {
+                        currentRunningProcess = currProc;
+                        displayState(false);
+                    }
+                    // end display logic
+                    tick();
+                    cpuTime += currProc.getCpuTime();
+                    tick++;
+                }
+                // if it is still in running state it didn't complete it's burst then set to waiting
+                // and move back into ready queue
+                if (currProc.getCurrentState() == Process.State.RUNNING) {
+                    currProc.setCurrentState(Process.State.WAITING);
+                    readyQ.add(currProc);
+                }
+            } else { // Nothing in readyQ everything out for IO in ioQ or complete
+                // nothing on readyQ so track cpu idle time
+                cpuIdleTime++;
+                tick();
             }
         }
-
+        // last snapshot
         if (displayMode) {
             currentRunningProcess = null;
             displayState(false);
         }
-        return processedList;
+        // end snapshot logic
+        return processedList.stream().toList();
+    }
+
+    /**
+     * Run updates on all processes, check their states after each tick,
+     * and move/remove them from the appropriate lists and queues.
+     */
+    private void tick() {
+        algorithmTotalTime++;
+        for (Process proc : allProcesses) {
+            proc.tick();
+            if (proc.isFinished()) {
+                proc.setCurrentState(Process.State.FINISHED);
+                readyQ.remove(proc);
+                ioQ.remove(proc);
+                processedList.add(proc);
+            }
+            // only proc to IO queue if in the correct state AND isn't already there
+            // otherwise it will have repeat processes in the ioQ
+            if (proc.getCurrentState() == Process.State.IO && !ioQ.contains(proc)) {
+                // The CPU burst has completed so send to IO
+                readyQ.remove(proc);
+                ioQ.add(proc);
+            }
+
+            // If the process has been set to waiting since the last tick then it can be moved
+            // to the ready queue if it is not already there.
+            if (proc.getCurrentState() == Process.State.WAITING && !readyQ.contains(proc)) {
+                Process firstIoCompletedProcess = ioQ.poll();
+                // if there is a process in IO the first one in the queue will be the first to be ready to move
+                if (firstIoCompletedProcess != null) {
+                    readyQ.add(firstIoCompletedProcess);
+                }
+            }
+        }
     }
 
     /**
@@ -104,23 +149,7 @@ public class RR implements ScheduleInterface {
      * @param proc - Process.
      */
     public void addProcess(Process proc) {
-        queue.add(proc);
-    }
-
-    /**
-     * Return queue empty state.
-     * @return - boolean. True if empty else false.
-     */
-    public boolean isEmpty() {
-        return queue.size() == 0;
-    }
-
-    /**
-     * Return the size of the queue.
-     * @return - int number of items in the queue.
-     */
-    public int size() {
-        return queue.size();
+        readyQ.add(proc);
     }
 
     /**
@@ -134,7 +163,7 @@ public class RR implements ScheduleInterface {
      * {@inheritDoc}
      */
     public int getTotalIdleCPUTime() {
-        return 0;
+        return cpuIdleTime;
     }
 
     /**
@@ -150,25 +179,31 @@ public class RR implements ScheduleInterface {
      * @param waitBetweenPages - boolean to wait for command line input or not.
      */
     public void displayState(boolean waitBetweenPages) {
+        System.out.println("Process burst reference:");
+        for (Process p : allProcesses) {
+            System.out.println(p.toString());
+        }
+        System.out.println(".......................................................");
         System.out.println("Current Time: " + algorithmTotalTime);
         System.out.println();
         System.out.println("Next process on CPU: " +
-                ((currentRunningProcess == null) ? "<none>" : currentRunningProcess.getName()) + ", duration: " +
-                ((currentRunningProcess == null) ? "<none>" : currentRunningProcess.getCurrentDuration()));
+                (currentRunningProcess == null ? "<none>" : currentRunningProcess.getName()) + ", duration: " +
+                (currentRunningProcess == null ? "<none>" : currentRunningProcess.getCurrentDuration()));
         System.out.println(".......................................................");
         System.out.println();
         System.out.println("List of processes in the ready queue:");
         System.out.println();
         System.out.println("\t\tProcess\t\tBurst");
-        for (Process p : queue) {
-            System.out.println("\t\t\t" + p.getName() + "\t\t" + p.getCurrentDuration());
+        for (Process p : readyQ) {
+            System.out.println("\t\t\t" + p.getName() + "\t\t" +
+                    ((Integer)p.getCurrentDuration() == null ? "<none>" : p.getCurrentDuration()));
         }
         System.out.println();
         System.out.println(".......................................................");
         System.out.println("List of processes in I/O:");
         System.out.println();
         System.out.println("\t\tProcess\tRemaining I/O time");
-        for (Process p : ioQueue) {
+        for (Process p : ioQ) {
             System.out.println("\t\t\t" + p.getName() + "\t\t" + p.getCurrentDuration());
         }
         System.out.println(".......................................................");
