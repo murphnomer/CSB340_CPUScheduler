@@ -15,7 +15,8 @@ public class Main {
                 new SJF(util.getDefaultTestData()),
                 new FCFS(Arrays.stream(util.getDefaultTestData()).toList()),
                 new Priority(Arrays.stream(util.getDefaultTestData()).toList()),
-                new MLQ(Arrays.stream(util.getDefaultTestData(),0,4).toList(), Arrays.stream(util.getDefaultTestData(),4,8).toList(), 4)
+                new MLQ(Arrays.stream(util.getDefaultTestData(),0,4).toList(), Arrays.stream(util.getDefaultTestData(),4,8).toList(), 4),
+                new MLFQ(Arrays.asList(util.getDefaultTestData()), 5, 10)
         };
         for (ScheduleInterface algo : algorithms) {
             algo.setDisplayMode(DISPLAY_MODE);
