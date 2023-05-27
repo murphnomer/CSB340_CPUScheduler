@@ -10,7 +10,7 @@ public class MLQ implements ScheduleInterface {
     Queue<Process> foregroundQueue;
     Queue<Process> backgroundQueue;
     // pointers to track which queue is currently allowed to execute and which is idle
-    Queue<Process> currentlyExecutingQueue;
+    Queue<Process> activeQueue;
     Queue<Process> idleQueue;
     // keep track of which processes belong in which queue so they go back to the right one when they return from IO
     Map<String, Queue<Process>> processMap;
@@ -36,11 +36,14 @@ public class MLQ implements ScheduleInterface {
     Process procOnCPU;
     // switch variable indicating whether to display state at every context switch
     private boolean displayMode = false;
+    // switch variable indicating whether to display state every tick for debugging
+    private boolean debugMode = false;
 
     public MLQ(List<Process> foregroundProcesses, List<Process> backgroundProcesses, int foregroundTimeQuantum) {
         foregroundQueue = new LinkedList<>(foregroundProcesses);
         backgroundQueue = new LinkedList<>(backgroundProcesses);
-        currentlyExecutingQueue = foregroundQueue;
+        activeQueue = foregroundQueue;
+        idleQueue = backgroundQueue;
         allProcesses = new ArrayList<>();
         processMap = new HashMap<>();
         for (Process p : foregroundProcesses) {
@@ -72,12 +75,12 @@ public class MLQ implements ScheduleInterface {
     }
 
     private void switchQueues() {
-        if (currentlyExecutingQueue == foregroundQueue) {
+        if (activeQueue == foregroundQueue) {
             idleQueue = foregroundQueue;
-            currentlyExecutingQueue = backgroundQueue;
+            activeQueue = backgroundQueue;
         } else {
             idleQueue = backgroundQueue;
-            currentlyExecutingQueue = foregroundQueue;
+            activeQueue = foregroundQueue;
         }
         currCycleTimer = 0;
     }
@@ -85,29 +88,48 @@ public class MLQ implements ScheduleInterface {
     @Override
     public List<Process> process() {
         while (getUnfinishedProcessCount() > 0) {
+            if (activeQueue == foregroundQueue) {
+                if (currCycleTimer++ >= foregroundTQ) {
+                    if (procOnCPU != null && procOnCPU.getCurrentState() == Process.State.RUNNING) {
+                        procOnCPU.preempt();
+                        processMap.get(procOnCPU.getName()).add(procOnCPU);
+                    }
+                    currCycleTimer = 0;
+                }
+            } else {
+                if (!foregroundQueue.isEmpty()) {
+                    switchQueues();
+                    if (procOnCPU != null && procOnCPU.getCurrentState() == Process.State.RUNNING) {
+                        procOnCPU.preempt();
+                        processMap.get(procOnCPU.getName()).add(procOnCPU);
+                    }
+                    currCycleTimer = 0;
+                }
+            }
 
                 // if there's currently a running process on the CPU
             if (procOnCPU != null && procOnCPU.getCurrentState() == Process.State.RUNNING) {
                 // no context switch required
 
                 // if no currently running process, the if the ready queue is not empty
-            } else if (currentlyExecutingQueue.size() > 0) {
+            } else if (activeQueue.size() > 0) {
                     // ensure the CPU is not set to idle
                     // if the process currently on the processor is not running, that means it must have finished on the
                     // previous tick, so send it to IO and choose the next process
                     if (cpuIsIdle || procOnCPU.getCurrentState() != Process.State.RUNNING) {
                         cpuIsIdle = false;
                         // pick the next process from the ready queue
-                        procOnCPU = currentlyExecutingQueue.remove();
+                        procOnCPU = activeQueue.remove();
                         // print output for this context switch if desired
                         procOnCPU.setCurrentState(Process.State.RUNNING);
+                        currCycleTimer = 1;
                         if (displayMode) displayState(false);
                     }
                 } else if (idleQueue.size() > 0) {
                     switchQueues();
                     cpuIsIdle = false;
                     // pick the next process from the ready queue
-                    procOnCPU = currentlyExecutingQueue.remove();
+                    procOnCPU = activeQueue.remove();
                     // print output for this context switch if desired
                     // set the selected process to running
                     procOnCPU.setCurrentState(Process.State.RUNNING);
@@ -123,6 +145,7 @@ public class MLQ implements ScheduleInterface {
                 }
             // run a tick on all processes
             tickAll();
+            if (debugMode) displayState(false);
     }
         return finishedProcesses;
     }
@@ -150,13 +173,6 @@ public class MLQ implements ScheduleInterface {
             if (p.getCurrentState() == Process.State.FINISHED) {
                 if (!finishedProcesses.contains(p)) finishedProcesses.add(p);
                 if (outForIO.contains(p)) outForIO.remove(p);
-            }
-        }
-        if (currentlyExecutingQueue == foregroundQueue) {
-            if (++currCycleTimer >= foregroundTQ) {
-                procOnCPU.preempt();
-                processMap.get(procOnCPU.getName()).add(procOnCPU);
-                currCycleTimer = 0;
             }
         }
 
@@ -200,32 +216,44 @@ public class MLQ implements ScheduleInterface {
     public void displayState(boolean waitBetweenPages) {
         System.out.println("Current Time: " + timer);
         System.out.println();
-        System.out.println("Next process on CPU: " + ((cpuIsIdle) ? "<none>" : procOnCPU.getName() + ", duration: " +
-                procOnCPU.getCurrentDuration()));
+        System.out.println("Process on CPU: " + ((cpuIsIdle) ? "<none>" : procOnCPU.getName() + ", remaining burst duration: " +
+                (procOnCPU.getCurrentBurstType()==Process.BurstType.CPU ? procOnCPU.getCurrentDuration() : "<finished>")));
         System.out.println(".......................................................");
         System.out.println();
-        System.out.println("List of processes in the foreground queue:");
+        System.out.println("List of processes in the foreground queue: " + (activeQueue ==foregroundQueue ? "<active> current TQ " + currCycleTimer + "/" + foregroundTQ : "") );
         System.out.println();
-        System.out.println("\t\tProcess\t\tBurst");
-        for (Process p : foregroundQueue) {
-            System.out.println("\t\t\t" + p.getName() + "\t\t" + p.getCurrentDuration());
+        if (!foregroundQueue.isEmpty()) {
+            System.out.println("\t\tProcess\t\tBurst");
+            for (Process p : foregroundQueue) {
+                System.out.println("\t\t\t" + p.getName() + "\t\t" + p.getCurrentDuration());
+            }
+        } else {
+            System.out.println("\t\t<none>");
         }
         System.out.println();
+        System.out.println("List of processes in the background queue: " + (activeQueue ==backgroundQueue ? "<active> ": ""));
         System.out.println();
-        System.out.println("List of processes in the background queue:");
-        System.out.println();
-        System.out.println("\t\tProcess\t\tBurst");
-        for (Process p : backgroundQueue) {
-            System.out.println("\t\t\t" + p.getName() + "\t\t" + p.getCurrentDuration());
+        if (!backgroundQueue.isEmpty()) {
+            System.out.println("\t\tProcess\t\tBurst");
+            for (Process p : backgroundQueue) {
+                System.out.println("\t\t\t" + p.getName() + "\t\t" + p.getCurrentDuration());
+            }
+        } else {
+            System.out.println("\t\t<none>");
         }
         System.out.println();
         System.out.println(".......................................................");
         System.out.println("List of processes in I/O:");
         System.out.println();
-        System.out.println("\t\tProcess\tRemaining I/O time");
-        for (Process p : outForIO) {
-            System.out.println("\t\t\t" + p.getName() + "\t\t" + p.getCurrentDuration());
+        if (outForIO.size() > 0) {
+            System.out.println("\t\tProcess\tRemaining I/O time");
+            for (Process p : outForIO) {
+                System.out.println("\t\t\t" + p.getName() + "\t\t" + p.getCurrentDuration());
+            }
+        } else {
+            System.out.println("\t\t<none>");
         }
+        System.out.println();
         System.out.println(".......................................................");
         System.out.println();
         System.out.print("Finished processes: ");
