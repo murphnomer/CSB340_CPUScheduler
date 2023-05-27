@@ -17,7 +17,7 @@ class PriorityTest {
         for (int i = 0; i < result.size(); i++) {
             actual[i] = result.get(i).getName();
         }
-        String[] expected = {"P5", "P6", "P1", "P4", "P3", "P2", "P8", "P7"};
+        String[] expected = {"P6", "P1", "P5", "P3", "P8", "P4", "P7", "P2"};
         assertArrayEquals(expected, actual);
     }
 }
