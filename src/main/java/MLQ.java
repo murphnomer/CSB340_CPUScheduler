@@ -6,7 +6,7 @@ import java.util.*;
  * @author Mike Murphy
  */
 public class MLQ implements ScheduleInterface {
-    // priority queue of processes waiting for CPU time
+    // queues of processes waiting for CPU time
     Queue<Process> foregroundQueue;
     Queue<Process> backgroundQueue;
     // pointers to track which queue is currently allowed to execute and which is idle
@@ -74,6 +74,9 @@ public class MLQ implements ScheduleInterface {
         return count;
     }
 
+    /**
+     * Switches the active queue
+     */
     private void switchQueues() {
         if (activeQueue == foregroundQueue) {
             idleQueue = foregroundQueue;
@@ -85,24 +88,35 @@ public class MLQ implements ScheduleInterface {
         currCycleTimer = 0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Process> process() {
         while (getUnfinishedProcessCount() > 0) {
+            // if we're in the round robin queue, we have to check the time quantum counter and preempt if necessary
             if (activeQueue == foregroundQueue) {
+                // if the time quantum is up
                 if (currCycleTimer++ >= foregroundTQ) {
+                    // if the process is still running, preempt it and return it to its home queue
                     if (procOnCPU != null && procOnCPU.getCurrentState() == Process.State.RUNNING) {
                         procOnCPU.preempt();
                         processMap.get(procOnCPU.getName()).add(procOnCPU);
                     }
+                    // and reset the quantum timer
                     currCycleTimer = 0;
                 }
             } else {
+                // if we're in the background queue, but processes are in the foreground queue, we need to preempt the
+                // current process and switch queues
                 if (!foregroundQueue.isEmpty()) {
                     switchQueues();
+                    // if the process is still running, preempt it and return it to its home queue
                     if (procOnCPU != null && procOnCPU.getCurrentState() == Process.State.RUNNING) {
                         procOnCPU.preempt();
                         processMap.get(procOnCPU.getName()).add(procOnCPU);
                     }
+                    // and reset the quantum timer so we start with a fresh quantum
                     currCycleTimer = 0;
                 }
             }
@@ -111,28 +125,29 @@ public class MLQ implements ScheduleInterface {
             if (procOnCPU != null && procOnCPU.getCurrentState() == Process.State.RUNNING) {
                 // no context switch required
 
-                // if no currently running process, the if the ready queue is not empty
+                // if no currently running process, then if the active queue is not empty
             } else if (activeQueue.size() > 0) {
                     // ensure the CPU is not set to idle
                     // if the process currently on the processor is not running, that means it must have finished on the
                     // previous tick, so send it to IO and choose the next process
                     if (cpuIsIdle || procOnCPU.getCurrentState() != Process.State.RUNNING) {
                         cpuIsIdle = false;
-                        // pick the next process from the ready queue
+                        // pick the next process from the ready queue, set it to running, and reset the quantum timer
                         procOnCPU = activeQueue.remove();
-                        // print output for this context switch if desired
                         procOnCPU.setCurrentState(Process.State.RUNNING);
                         currCycleTimer = 1;
+                        // print output for this context switch if desired
                         if (displayMode) displayState(false);
                     }
+                // otherwise we have to switch queues and start the first process from the other queue
                 } else if (idleQueue.size() > 0) {
                     switchQueues();
                     cpuIsIdle = false;
                     // pick the next process from the ready queue
                     procOnCPU = activeQueue.remove();
-                    // print output for this context switch if desired
                     // set the selected process to running
                     procOnCPU.setCurrentState(Process.State.RUNNING);
+                    // print output for this context switch if desired
                     if (displayMode) displayState(false);
                 } else {
                     // both queues are empty, so the CPU will be idle
