@@ -93,12 +93,12 @@ or in a piece at a time until completion.
 This design uses multiple queues that each hold a static list of processes. A process
 comes in with a priority assigned then it is transferred to the queue that processes
 that priority. These queues can be designed to share the CPU differently depending on the scenario.
-One design option is that one queue is chosen to handle higher priority processes, and processes
-in this queue will always run first before those in any other queue. Another option is to use
-"time slices" to allow all queues to have predetermined proportions of the available CPU time
-(80%/20%, for instance).
+One design option called Fixed Priority Preemptive Scheduling (FPPS) is that one queue is chosen
+to handle higher priority processes, and processes in this queue will always run first before 
+those in any other queue. Another option is to use "time slices" to allow all queues to have 
+predetermined proportions of the available CPU time (80%/20%, for instance).
 
-In this project, we have chosen to use two queues using the former design option, with one queue 
+In this project, we have chosen to use two queues using the FPPS option, with one queue 
 designated as the "foreground queue" intended for higher priority processes, and the other as the
 lower priority "background queue".  In our implementation, as long as any processes are present in
 the foreground queue, those will be given priority and will execute in a round robin fashion with a 
