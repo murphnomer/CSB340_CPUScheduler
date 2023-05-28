@@ -160,7 +160,7 @@ before starting to build the solution.  In this case, we ended up with a project
 do some redesign late in the project because we couldn't integrate code that we wrote earlier since we hadn't
 properly planned out how to make the sections work together from the beginning.  Also, although the Process
 class ended up being a useful construct, it is a complex mechanism and not all team members were on the same
-page with it at the start.  This led to a delay in getting some of the alforithms finished while we all worked
+page with it at the start.  This led to a delay in getting some of the algorithms finished while we all worked
 to understand what we had put together to make it work correctly.
 
 ## UML Diagram
@@ -206,7 +206,7 @@ and some algorithms take that into consideration.
 
 The graph [Averages by Algorithm](#average-breakdown) above details the averages of each of these criteria broken down
 by algorithm. The FCFS, SJF, and Priority were immediately disqualified due to poor CPU utilization, which leaves us
-with MLQ, MLFQ, and Round Robin as candidates for best choice algorithm. We then contrasted Round Robin with MLFQ and 
+with MLQ, MLFQ, and Round Robin as candidates for the best choice of algorithm. We then contrasted Round Robin with MLFQ and 
 decided that the lower average wait time and response of MLFQ were not significant enough to ignore the 3% drop in CPU utilization, 
 so we cut MLFQ.
 
