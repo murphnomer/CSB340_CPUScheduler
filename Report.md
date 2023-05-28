@@ -15,7 +15,7 @@
    - [Round-Robin](#round-robin)
    - [Multi-level Queue](#multi-level-queue)
    - [Multi-level Feedback Queue](#multi-level-feedback-queue)
-8. [Process](#process)
+8. [Design Process](#design-process)
 8. [UML Diagram](#uml-diagram)
 9. [Data](#results)
    - [Average Breakdown](#average-breakdown)
@@ -30,9 +30,10 @@
 
 ## Introduction
 
-The goals of this project were to implement several scheduling algorithms to simulate CPU scheduling.
-Then compare and contrast the results based on an agreed upon criteria. In comparing these algorithms
-the criteria used is: CPU utilization, turnaround time, waiting time, and response time.
+The goals of this project were to implement several scheduling algorithms to simulate CPU scheduling,
+then compare and contrast the results based on an agreed upon criteria. In comparing these algorithms,
+the criteria we used are optimization of CPU utilization, turnaround time, waiting time, and response time.
+Optimization is context-dependent, see the [Conclusion](#conclusion) section for discussion on this topic.
 
 ## Algorithms
 
@@ -47,7 +48,7 @@ is then ran for its current CPU burst duration. If any process is in I/O its I/O
 process CPU burst, once the I/O burst finishes it is sent back to the ready queue. This algorithm continues to run until all processes 
 have finished all of its I/O and CPU bursts.
 
-Implementing the FCFS algorithm started off as a difficult task, as their was multiple things that needed to be checked before, during, and after a process ran.
+Implementing the FCFS algorithm started off as a difficult task, as there were multiple things that needed to be checked before, during, and after a process ran.
 I had to slowly run the program and make sure numbers looked right at each instance. The sample FCFS data file provided helped me recognize that I was implementing
 the algorithm properly, and have the algorithm finish running with all the correct data.
 
@@ -135,9 +136,9 @@ to have it finish running and display data
 ## Design Process
 
 We decided to build a custom Process class that contains several counter variables and tracks each
-Process' current state (Running, IO, Waiting, Finished) and has corresponding counter variables
-to track the amount of time each Process has spent in that state.  This design choice made calculating
-the metrics for each algorithm very easy to do. The main operations of the Process class come in its
+Process' current state (Running, IO, Waiting, Finished) with corresponding counter variables
+that track the amount of time each Process has spent in that state.  This design choice made calculating
+the individual and average metrics for each algorithm very easy to do. The main operations of the Process class come in its
 tick() method, which handles incrementation of the appropriate counter for the current state, and
 also manages many of the state changes (moves a process to the IO state once its current CPU burst
 has finished, for instance).  Then each algorithm just has to instruct all of its Processes to 
@@ -152,6 +153,15 @@ the Multi-level Queue and Multi-level Feedback Queue had to be designed with the
 not involve the composition of previous algorithms. A design from the top down may have provided
 a better perspective on how we needed those algorithms to function from the perspective of
 use with the ML queues.
+
+One aspect of the design process that this project illustrated very well is the advantage of spending time
+analyzing the requirements as a team, discussing available design options, and planning out that design
+before starting to build the solution.  In this case, we ended up with a project that worked, but we had to 
+do some redesign late in the project because we couldn't integrate code that we wrote earlier since we hadn't
+properly planned out how to make the sections work together from the beginning.  Also, although the Process
+class ended up being a useful construct, it is a complex mechanism and not all team members were on the same
+page with it at the start.  This led to a delay in getting some of the alforithms finished while we all worked
+to understand what we had put together to make it work correctly.
 
 ## UML Diagram
 ![UML Diagram](data&charts/UML_Diagram.png)
@@ -185,20 +195,20 @@ use with the ML queues.
 
 ## Conclusion
 
-First, a reminder as to the criteria being used to compare these algorithms is:
-CPU utilization, turnaround time, waiting time, and response time. The category we care about the most is
-the maximization of CPU utilization. How the other criteria is ranked will depend on what the system is designed to do.
-Response time could be the next important if the system needs to get results back to the user rapidly even if they are
+First, a reminder as to the criteria being used to compare these algorithms are optimization of
+CPU utilization, turnaround time, waiting time, and response time. In general, the most important category is
+the maximization of CPU utilization. How the other criteria are ranked will depend on the specifics of the task at hand.
+Response time could be the next most important criterion if the system needs to get results back to the user rapidly even if they are
 only partial results. Turnaround time could be a higher priority than response time if the system depends on full
-completion of processes. The wait time, how long the process waits in the ready queue, will depend on the previous
-two design choices. The test data provided contains processes that have priorities assigned to them.
-So where appropriate that is taken into consideration.
+completion of processes. Minimizing wait time could be important if some processes are critical to the operation of the system (the CPU
+scheduler process itself, for instance). The test data provided contains processes that have priorities assigned to them, 
+and some algorithms take that into consideration.
 
 The graph [Averages by Algorithm](#average-breakdown) above details the averages of each of these criteria broken down
-by algorithm. The FCFS, SJF, and Priority were immediately disqualified due to poor CPU utilization. Which leaves us
-with MLQ, MLFQ, and Round Robin. We then contrasted Round Robin with MLFQ and decided that the lower average wait time
-and response of Round Robin were not significant enough to ignore the 3% bump on CPU utilization it achieved. So we cut
-MLFQ.
+by algorithm. The FCFS, SJF, and Priority were immediately disqualified due to poor CPU utilization, which leaves us
+with MLQ, MLFQ, and Round Robin as candidates for best choice algorithm. We then contrasted Round Robin with MLFQ and 
+decided that the lower average wait time and response of MLFQ were not significant enough to ignore the 3% drop in CPU utilization, 
+so we cut MLFQ.
 
 MLQ wins highest average CPU utilization, lowest average wait time, and lowest average turnaround compared against
 Round Robin. The one area it did not win is the average response time at just shy of double that of Round Robin.
@@ -206,21 +216,19 @@ Round Robin. The one area it did not win is the average response time at just sh
 At this point we must return to design decisions. If response time is the next important factor after maximizing
 CPU utilization then Round Robin must be considered. It will process results in an equitable fashion. Meaning, priority
 must _not_ be of importance to consider this algorithm. However, note that the MLQ does take priority into account.
-So even though the average turnaround time is higher overall that average is effected by the fact that it will
-preempt lower priority processes. This raises the overall average, but the highest priority processes would always
-fall on the lower end of that average.
+So even though the average turnaround time is higher overall that average is affected by the fact that processes in
+the higher priority queue will preempt lower priority ones. This raises the overall average, but the highest priority processes 
+always fall on the lower end of that average.
 
-So in context, and if the system design requires it, this could be the clear winner. Round Robin would be a good choice
-if the system requires processes be handled in a more equitable fashion.
+So in context, and if the system design requires prioritization of certain processes, this could be the clear winner. Round Robin would be a good choice
+if the system requires all processes be handled in a more equitable fashion.
 
-## Glossary
-
-**FCFS** - First Come First Served
-
-**SJF** - Shortest Job First
-
-**RR** - Round Robin
-
-**MLQ** - Multi-level Queue
-
+## Glossary 
+**Tw** - Waiting Time: the amount of time the process spends waiting to be chosen by the scheduler for execution.  
+**Tr** - Response Time: the amount of time between when the process arrives for scheduling and the time it first starts executing.  
+**Ttr** - Turnaround Time: the total time between when the process arrives for scheduling and when it completely finishes executing.   
+**FCFS** - First Come First Served  
+**SJF** - Shortest Job First  
+**RR** - Round Robin  
+**MLQ** - Multi-level Queue  
 **MLFQ** - Multi-level Feedback Queue
