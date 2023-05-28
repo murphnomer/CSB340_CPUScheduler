@@ -68,11 +68,11 @@ this work.
 ### Shortest Job First
 
 This algorithm is a variation of the above described Priority algorithm. The priority in this
-case is the length of the process job duration. As the title states the highest priority goes to
-the shortest duration. There is a preemptive and non-preemptive version. The algorithm in this
-report is the non-preemptive implementation.
-
-TODO: Mike add impementation details here
+case is the length of the process job duration. As the title states, the highest priority goes to
+the process with the shortest duration. The Shortest Job First algorithm can be implemented in 
+either a preemptive or non-preemptive version. The algorithm in this project is the non-preemptive
+implementation.  Shortest Job First improves slightly on the performance of FCFS, as processes with
+long runtimes do not block the CPU and starve shorter jobs for long periods.
 
 ### Round-Robin
 
@@ -86,14 +86,24 @@ or in a piece at a time until completion.
 
 ### Multi-level Queue
 
-This design has multiple queues each that hold a different priority per level. A process
+This design uses multiple queues that each hold a static list of processes. A process
 comes in with a priority assigned then it is transferred to the queue that processes
-that priority. There are different ways that these queues can be designed to run the processes.
-One way could be that the queue that handles all the highest priority processes will
-always run first before any of the other queues. Another design choice is to provide a time
-slice to split up how different queues are run.
+that priority. These queues can be designed to share the CPU differently depending on the scenario.
+One design option is that one queue is chosen to handle higher priority processes, and processes
+in this queue will always run first before those in any other queue. Another option is to use
+"time slices" to allow all queues to have predetermined proportions of the available CPU time
+(80%/20%, for instance).
 
-TODO: Mike add details of your implementation here
+In this project, we have chosen to use two queues using the former design option, with one queue 
+designated as the "foreground queue" intended for higher priority processes, and the other as the
+lower priority "background queue".  In our implementation, as long as any processes are present in
+the foreground queue, those will be given priority and will execute in a round robin fashion with a 
+time quantum of 4.  The background queue operates using the rules for First Come First Served.
+
+In our implementation, once a process has been assigned to a queue, it will stay in that queue even
+after returning from I/O operations until it has completely finished operations.  Because of this,
+processes assigned to the foreground queue complete much more quickly and have lower metric values
+than those in the background.
 
 ### Multi-level Feedback Queue
 
@@ -120,17 +130,27 @@ debug when trying to figure what went wrong in the logic as we get further in th
 to have it finish running and display data
 
 ## Design Process
+We decided to build a custom Process class that contains several counter variables and tracks each
+Process' current state (Running, IO, Waiting, Finished) and has corresponding counter variables
+to track the amount of time each Process has spent in that state.  This design choice made calculating
+the metrics for each algorithm very easy to do. The main operations of the Process class come in its
+tick() method, which handles incrementation of the appropriate counter for the current state, and
+also manages many of the state changes (moves a process to the IO state once its current CPU burst
+has finished, for instance).  Then each algorithm just has to instruct all of its Processes to 
+tick on each time increment and move the Process to the appropriate queue as dictated by the
+particular algorithm being implemented, and the Process class handles the rest of the behavior.
 
 We decided to approach this from the bottom up writing the FCFS and Round Robin algorithms
 so that we could compose the Multi-level queues with them. One flaw with this logic, or at
 least in our planning, was that we did not develop those algorithms to function as a part
 of another algorithm. Due to the difficulty in modifying the previously implemented algorithms
-the Multi-level Queue and Multi-level Feedback Queue were designed with their own logic that did
+the Multi-level Queue and Multi-level Feedback Queue had to be designed with their own logic that did
 not involve the composition of previous algorithms. A design from the top down may have provided
 a better perspective on how we needed those algorithms to function from the perspective of
 use with the ML queues.
 
 ## UML Diagram
+![UML Diagram](data&charts/UML_Diagram.png)
 
 ## Results
 ![Results](data&charts/All_Algo_Data.PNG)
